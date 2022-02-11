@@ -11,13 +11,13 @@ pub enum Payload {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClientMessage {
     #[serde(rename = "REID")]
-    request_id: i32,
+    pub request_id: i32,
     #[serde(rename = "VERB")]
-    verb: String,
+    pub verb: String,
     #[serde(rename = "PATH")]
-    path: Vec<String>,
+    pub path: Vec<String>,
     #[serde(rename = "AUTH")]
-    authentication: Authentication,
+    pub authentication: Authentication,
     #[serde(rename = "PAYL")]
-    payload: Payload
+    pub payload: Payload
 }

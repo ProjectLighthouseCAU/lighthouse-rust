@@ -3,9 +3,9 @@ use serde::{Serialize, Deserialize};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Authentication {
     #[serde(rename = "USER")]
-    username: String,
+    pub username: String,
     #[serde(rename = "TOKEN")]
-    token: String,
+    pub token: String,
 }
 
 impl Authentication {
@@ -15,8 +15,4 @@ impl Authentication {
             token: token.to_owned(),
         }
     }
-
-    pub fn username(&self) -> &str { self.username.as_str() }
-
-    pub fn token(&self) -> &str { self.token.as_str() }
 }
