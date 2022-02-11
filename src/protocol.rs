@@ -1,12 +1,11 @@
 use serde::{Serialize, Deserialize};
 
-use crate::Authentication;
+use crate::{Authentication, Display};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Payload {
-    // TODO
-    Display()
+    Display(Display),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
