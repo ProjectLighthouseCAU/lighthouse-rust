@@ -1,15 +1,15 @@
 use async_tungstenite::{async_std::{connect_async, ConnectStream}, WebSocketStream};
-use crate::{LighthouseAuth, LighthouseResult};
+use crate::{Authentication, LighthouseResult};
 
-pub struct LighthouseConnection {
-    auth: LighthouseAuth,
+pub struct Connection {
+    authentication: Authentication,
     connection: WebSocketStream<ConnectStream>
 }
 
-impl LighthouseConnection {
-    pub async fn new(auth: LighthouseAuth) -> LighthouseResult<Self> {
+impl Connection {
+    pub async fn new(authentication: Authentication) -> LighthouseResult<Self> {
         Ok(Self {
-            auth,
+            authentication,
             connection: connect_async("wss://lighthouse.uni-kiel.de/websocket").await?.0,
         })
     }
