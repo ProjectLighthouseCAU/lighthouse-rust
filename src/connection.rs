@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use async_tungstenite::{async_std::{connect_async, ConnectStream}, WebSocketStream, tungstenite::Message};
 use futures::prelude::*;
 use rmp_serde;
@@ -30,6 +32,7 @@ impl Connection {
             request_id,
             authentication: self.authentication.clone(),
             path: path.into_iter().map(|s| s.to_owned()).collect(),
+            meta: HashMap::new(),
             verb: verb.to_owned(),
             payload
         }).await

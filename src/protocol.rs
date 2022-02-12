@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::{Serialize, Deserialize};
 
 use crate::{Authentication, Display};
@@ -16,6 +18,8 @@ pub struct ClientMessage {
     pub verb: String,
     #[serde(rename = "PATH")]
     pub path: Vec<String>,
+    #[serde(rename = "META")]
+    pub meta: HashMap<String, String>,
     #[serde(rename = "AUTH")]
     pub authentication: Authentication,
     #[serde(rename = "PAYL")]
