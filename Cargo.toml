@@ -15,3 +15,4 @@ rmp-serde = "1.0"
 
 [dev-dependencies]
 rand = "0.8"
+simple_logger = "2.1"
