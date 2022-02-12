@@ -1,11 +1,35 @@
 use serde::{Serialize, Deserialize, de, Serializer, Deserializer};
 use std::fmt;
 
-use crate::Color;
+use crate::{Color, BLACK};
+
+pub const LIGHTHOUSE_ROWS: usize = 28;
+pub const LIGHTHOUSE_COLS: usize = 14;
+pub const LIGHTHOUSE_SIZE: usize = LIGHTHOUSE_ROWS * LIGHTHOUSE_COLS;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Display {
-    pixels: Vec<Color>,
+    pixels: [Color; LIGHTHOUSE_SIZE],
+}
+
+impl Display {
+    pub fn new(pixels: [Color; LIGHTHOUSE_SIZE]) -> Self {
+        Self { pixels }
+    }
+
+    pub fn fill(color: Color) -> Self {
+        Self { pixels: [color; LIGHTHOUSE_SIZE] }
+    }
+
+    pub fn generate(f: impl Fn(usize, usize) -> Color) -> Self {
+        let mut pixels = [BLACK; LIGHTHOUSE_SIZE];
+        for y in 0..LIGHTHOUSE_ROWS {
+            for x in 0..LIGHTHOUSE_COLS {
+                pixels[y * LIGHTHOUSE_COLS + x] = f(x, y);
+            }
+        }
+        Self { pixels }
+    }
 }
 
 impl Serialize for Display {
@@ -44,7 +68,10 @@ impl<'de> de::Visitor<'de> for DisplayBytesVisitor {
                         &[r, g, b] => Color::new(r, g, b),
                         _ => unreachable!(),
                     })
-                    .collect()
+                    .collect::<Vec<_>>()
+                    .try_into()
+                    .map(Ok)
+                    .unwrap_or_else(|_| Err(E::custom("Could not decode into pixels array".to_owned())))?
             })
         } else {
             Err(E::custom(format!("{} (length of byte array) is not a multiple of 3", v.len())))
