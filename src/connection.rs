@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use async_tungstenite::{async_std::{connect_async, ConnectStream}, WebSocketStream, tungstenite::Message};
 use futures::prelude::*;
+use log::warn;
 use rmp_serde;
 use crate::{Authentication, LighthouseResult, Display, ClientMessage, Payload, LighthouseError, ServerMessage};
 
@@ -52,10 +53,14 @@ impl Connection {
     }
 
     async fn receive(&mut self) -> LighthouseResult<Vec<u8>> {
-        let message = self.connection.next().await.ok_or_else(|| LighthouseError::custom("Got no message"))??;
-        match message {
-            Message::Binary(bytes) => Ok(bytes),
-            _ => Err(LighthouseError::custom("Got non-binary message")),
+        loop {
+            let message = self.connection.next().await.ok_or_else(|| LighthouseError::custom("Got no message"))??;
+            match message {
+                Message::Binary(bytes) => break Ok(bytes),
+                // We ignore pings for now
+                Message::Ping(_) => {},
+                _ => warn!("Got non-binary message: {:?}", message),
+            }
         }
     }
 }
