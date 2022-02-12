@@ -36,7 +36,7 @@ impl Connection {
     }
 
     pub async fn send_message(&mut self, message: &ClientMessage) -> LighthouseResult<()> {
-        self.send(rmp_serde::to_vec(message)?).await
+        self.send(rmp_serde::to_vec_named(message)?).await
     }
 
     pub async fn receive_message(&mut self) -> LighthouseResult<ServerMessage> {
