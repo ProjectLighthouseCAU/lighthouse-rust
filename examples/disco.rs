@@ -10,13 +10,16 @@ fn random_color() -> Color {
 }
 
 async fn run(auth: Authentication) -> LighthouseResult<()> {
-    info!("Connecting to Lighthouse server...");
     let mut conn = Connection::new(auth).await?;
+    info!("Connected to the Lighthouse server");
 
-    info!("Connected!");
     loop {
         conn.send_display(Display::fill(random_color())).await?;
         info!("Sent display");
+
+        let response = conn.receive_message().await?;
+        info!("Got response {:?}", response);
+
         task::sleep(Duration::from_secs(1)).await;
     }
 }

@@ -28,10 +28,10 @@ pub struct ServerMessage {
     pub code: i32,
     #[serde(rename = "REID")]
     pub request_id: Option<i32>,
-    #[serde(rename = "WARNINGS")]
+    #[serde(rename = "WARNINGS", skip_serializing_if = "Vec::is_empty", default)]
     pub warnings: Vec<String>,
     #[serde(rename = "RESPONSE")]
-    pub response: String,
+    pub response: Option<String>,
     // TODO: Support other cases
     // #[serde(rename = "PAYL")]
     // pub payload: Payload,
