@@ -1,5 +1,7 @@
 # Project Lighthouse Client for Rust
 
+[![Build](https://github.com/fwcd/lighthouse-rust/actions/workflows/build.yml/badge.svg)](https://github.com/fwcd/lighthouse-rust/actions/workflows/build.yml)
+
 An API client for a light installation at the University of Kiel.
 
 ## Usage
