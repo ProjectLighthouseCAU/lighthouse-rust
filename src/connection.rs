@@ -1,15 +1,16 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 use async_tungstenite::{async_std::{connect_async, ConnectStream}, WebSocketStream, tungstenite::Message};
 use futures::prelude::*;
 use log::warn;
 use rmp_serde;
-use crate::{Authentication, LighthouseResult, Display, ClientMessage, Payload, LighthouseError, ServerMessage};
+use crate::{Authentication, LighthouseResult, Display, ClientMessage, Payload, LighthouseError, ServerMessage, InputEvent};
 
 /// A connection to the lighthouse server for sending requests and receiving events.
 pub struct Connection {
     authentication: Authentication,
     connection: WebSocketStream<ConnectStream>,
+    queued_messages: VecDeque<ServerMessage>,
     request_id: i32,
 }
 
@@ -19,6 +20,7 @@ impl Connection {
         Ok(Self {
             authentication,
             connection: connect_async("wss://lighthouse.uni-kiel.de/websocket").await?.0,
+            queued_messages: VecDeque::new(),
             request_id: 0,
         })
     }
@@ -47,7 +49,7 @@ impl Connection {
             verb: verb.to_owned(),
             payload
         }).await?;
-        self.check_response().await
+        self.check_response(request_id).await
     }
 
     /// Sends a generic message to the lighthouse.
@@ -56,11 +58,8 @@ impl Connection {
     }
 
     /// Receives the response to a message.
-    async fn check_response(&mut self) -> LighthouseResult<()> {
-        // TODO: We currently assume that the next message is the response,
-        //       which might not necessarily be the case. Ideally we'd check
-        //       with the response id.
-        let response = self.receive_message().await?;
+    async fn check_response(&mut self, request_id: i32) -> LighthouseResult<()> {
+        let response = self.receive_message_where(|m| m.request_id == Some(request_id)).await?;
         if response.code == 200 {
             Ok(())
         } else {
@@ -68,10 +67,47 @@ impl Connection {
         }
     }
 
-    /// Receives a generic message from the lighthouse.
+    /// Receives the next input event from the lighthouse.
+    pub async fn receive_input_event(&mut self) -> LighthouseResult<InputEvent> {
+        self.receive_message_filtering(|m| match m.payload {
+            Payload::InputEvent(event) => Some(event),
+            _ => None
+        }).await
+    }
+
+    /// Receives the next (generic) message from the lighthouse.
     pub async fn receive_message(&mut self) -> LighthouseResult<ServerMessage> {
-        let bytes = self.receive().await?;
-        Ok(rmp_serde::from_slice(&bytes)?)
+        self.receive_message_filtering(|m| Some(m.clone())).await
+    }
+
+    /// Receives the next (generic) message that satisfies the given predicate from the lighthouse.
+    pub async fn receive_message_where(&mut self, filter: impl Fn(&ServerMessage) -> bool) -> LighthouseResult<ServerMessage> {
+        self.receive_message_filtering(|m| if filter(&m) { Some(m.clone()) } else { None }).await
+    }
+
+    /// Receives the next (generic) message using the given filter-mapper from the lighthouse.
+    pub async fn receive_message_filtering<T>(&mut self, filter: impl Fn(&ServerMessage) -> Option<T>) -> LighthouseResult<T> {
+        // Try to find the message in the queue
+        for _ in 0..self.queued_messages.len() {
+            if let Some(message) = self.queued_messages.pop_front() {
+                if let Some(value) = filter(&message) {
+                    return Ok(value);
+                } else {
+                    self.queued_messages.push_back(message);
+                }
+            }
+        }
+
+        loop {
+            // Otherwise receive the next message
+            let bytes = self.receive().await?;
+            let message = rmp_serde::from_slice(&bytes)?;
+            if let Some(value) = filter(&message) {
+                return Ok(value);
+            } else {
+                self.queued_messages.push_back(message);
+            }
+        }
     }
 
     /// Sends raw bytes to the lighthouse via the WebSocket connection.

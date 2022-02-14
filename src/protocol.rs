@@ -6,7 +6,7 @@ use serde_with::rust::deserialize_ignore_any;
 use crate::{Authentication, Display};
 
 /// A key/controller input event.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 pub struct InputEvent {
     #[serde(rename = "src")]
     pub source: i32,
@@ -18,7 +18,7 @@ pub struct InputEvent {
 }
 
 /// The payload of a message.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(untagged)]
 pub enum Payload {
     Display(Display),
@@ -28,7 +28,7 @@ pub enum Payload {
 }
 
 /// A message originating from the lighthouse client.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct ClientMessage {
     #[serde(rename = "REID")]
     pub request_id: i32,
@@ -45,7 +45,7 @@ pub struct ClientMessage {
 }
 
 /// A message originating from the lighthouse server.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct ServerMessage {
     #[serde(rename = "RNUM")]
     pub code: i32,
