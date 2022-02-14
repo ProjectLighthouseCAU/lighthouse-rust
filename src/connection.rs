@@ -23,10 +23,16 @@ impl Connection {
         })
     }
 
-    /// Sends a display (frame) to the lighthouse.
+    /// Sends a display (frame) to the user's lighthouse.
     pub async fn send_display(&mut self, display: Display) -> LighthouseResult<()> {
         let username = self.authentication.username.clone();
         self.send_request("PUT", ["user", username.as_str(), "model"], Payload::Display(display)).await
+    }
+
+    /// Requests a stream of events (including key/controller events) for the user's lighthouse.
+    pub async fn request_stream(&mut self) -> LighthouseResult<()> {
+        let username = self.authentication.username.clone();
+        self.send_request("STREAM", ["user", username.as_str(), "model"], Payload::Empty).await
     }
 
     /// Sends a request to the given path with the given payload.
