@@ -4,12 +4,14 @@ use serde::{Serialize, Deserialize};
 
 use crate::{Authentication, Display};
 
+/// The payload of a message.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Payload {
     Display(Display),
 }
 
+/// A message originating from the lighthouse client.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ClientMessage {
     #[serde(rename = "REID")]
@@ -26,6 +28,7 @@ pub struct ClientMessage {
     pub payload: Payload,
 }
 
+/// A message originating from the lighthouse server.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ServerMessage {
     #[serde(rename = "RNUM")]

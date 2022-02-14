@@ -7,6 +7,7 @@ pub const YELLOW: Color = Color { red: 255, green: 255, blue: 0 };
 pub const CYAN: Color = Color { red: 0, green: 255, blue: 255 };
 pub const MAGENTA: Color = Color { red: 255, green: 0, blue: 255 };
 
+/// An RGB color.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Color {
     pub red: u8,
@@ -15,6 +16,7 @@ pub struct Color {
 }
 
 impl Color {
+    /// Creates a new color from the given RGB components.
     pub fn new(red: u8, green: u8, blue: u8) -> Self {
         Self { red, green, blue }
     }

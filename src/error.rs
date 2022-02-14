@@ -3,6 +3,7 @@ use rmp_serde::{encode, decode};
 
 pub type LighthouseResult<T> = Result<T, LighthouseError>;
 
+/// The type for any error involved in communication with the lighthouse.
 #[derive(Debug)]
 pub enum LighthouseError {
     Tungstenite(tungstenite::Error),
@@ -13,6 +14,7 @@ pub enum LighthouseError {
 }
 
 impl LighthouseError {
+    /// Creates a new `LighthouseError` from the given custom message.
     pub fn custom(s: &str) -> Self { Self::Custom(s.to_owned()) }
 }
 

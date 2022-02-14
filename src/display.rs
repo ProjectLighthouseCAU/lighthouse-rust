@@ -7,20 +7,28 @@ pub const LIGHTHOUSE_ROWS: usize = 28;
 pub const LIGHTHOUSE_COLS: usize = 14;
 pub const LIGHTHOUSE_SIZE: usize = LIGHTHOUSE_ROWS * LIGHTHOUSE_COLS;
 
+/// An 'image' to be displayed on the lighthouse.
+/// The pixels are stored in row-major order.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Display {
     pixels: [Color; LIGHTHOUSE_SIZE],
 }
 
 impl Display {
+    /// Creates a new `Display` from the given pixels in
+    /// row-major order.
     pub fn new(pixels: [Color; LIGHTHOUSE_SIZE]) -> Self {
         Self { pixels }
     }
 
+    /// Creates a new uniformly colored `Display`.
     pub fn fill(color: Color) -> Self {
         Self { pixels: [color; LIGHTHOUSE_SIZE] }
     }
 
+    /// Creates a new `Display` from the given generator function
+    /// that associates each position of the form `(x, y)` with a
+    /// color.
     pub fn generate(f: impl Fn(usize, usize) -> Color) -> Self {
         let mut pixels = [BLACK; LIGHTHOUSE_SIZE];
         for y in 0..LIGHTHOUSE_ROWS {

@@ -6,6 +6,7 @@ use log::warn;
 use rmp_serde;
 use crate::{Authentication, LighthouseResult, Display, ClientMessage, Payload, LighthouseError, ServerMessage};
 
+/// A connection to the lighthouse server for sending requests and receiving events.
 pub struct Connection {
     authentication: Authentication,
     connection: WebSocketStream<ConnectStream>,
@@ -13,6 +14,7 @@ pub struct Connection {
 }
 
 impl Connection {
+    /// Connects to the lighthouse using the given credentials.
     pub async fn new(authentication: Authentication) -> LighthouseResult<Self> {
         Ok(Self {
             authentication,
@@ -21,11 +23,13 @@ impl Connection {
         })
     }
 
+    /// Sends a display (frame) to the lighthouse.
     pub async fn send_display(&mut self, display: Display) -> LighthouseResult<()> {
         let username = self.authentication.username.clone();
         self.send_request("PUT", ["user", username.as_str(), "model"], Payload::Display(display)).await
     }
 
+    /// Sends a request to the given path with the given payload.
     pub async fn send_request(&mut self, verb: &str, path: impl IntoIterator<Item=&str>, payload: Payload) -> LighthouseResult<()> {
         let request_id = self.request_id;
         self.request_id += 1;
@@ -40,11 +44,16 @@ impl Connection {
         self.check_response().await
     }
 
+    /// Sends a generic message to the lighthouse.
     pub async fn send_message(&mut self, message: &ClientMessage) -> LighthouseResult<()> {
         self.send(rmp_serde::to_vec_named(message)?).await
     }
 
+    /// Receives the response to a message.
     async fn check_response(&mut self) -> LighthouseResult<()> {
+        // TODO: We currently assume that the next message is the response,
+        //       which might not necessarily be the case. Ideally we'd check
+        //       with the response id.
         let response = self.receive_message().await?;
         if response.code == 200 {
             Ok(())
@@ -53,15 +62,18 @@ impl Connection {
         }
     }
 
+    /// Receives a generic message from the lighthouse.
     pub async fn receive_message(&mut self) -> LighthouseResult<ServerMessage> {
         let bytes = self.receive().await?;
         Ok(rmp_serde::from_slice(&bytes)?)
     }
 
+    /// Sends raw bytes to the lighthouse via the WebSocket connection.
     async fn send(&mut self, bytes: impl Into<Vec<u8>>) -> LighthouseResult<()> {
         Ok(self.connection.send(Message::Binary(bytes.into())).await?)
     }
 
+    /// Receives raw bytes from the lighthouse via the WebSocket connection.
     async fn receive(&mut self) -> LighthouseResult<Vec<u8>> {
         loop {
             let message = self.connection.next().await.ok_or_else(|| LighthouseError::custom("Got no message"))??;
