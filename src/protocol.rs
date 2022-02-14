@@ -5,11 +5,24 @@ use serde_with::rust::deserialize_ignore_any;
 
 use crate::{Authentication, Display};
 
+/// A key/controller input event.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct InputEvent {
+    #[serde(rename = "src")]
+    pub source: i32,
+    pub key: Option<i32>,
+    #[serde(rename = "btn")]
+    pub button: Option<i32>,
+    #[serde(rename = "dwn")]
+    pub is_down: bool,
+}
+
 /// The payload of a message.
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum Payload {
     Display(Display),
+    InputEvent(InputEvent),
     #[serde(deserialize_with = "deserialize_ignore_any")]
     Empty,
 }
