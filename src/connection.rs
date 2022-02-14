@@ -36,11 +36,21 @@ impl Connection {
             meta: HashMap::new(),
             verb: verb.to_owned(),
             payload
-        }).await
+        }).await?;
+        self.check_response().await
     }
 
     pub async fn send_message(&mut self, message: &ClientMessage) -> LighthouseResult<()> {
         self.send(rmp_serde::to_vec_named(message)?).await
+    }
+
+    async fn check_response(&mut self) -> LighthouseResult<()> {
+        let response = self.receive_message().await?;
+        if response.code == 200 {
+            Ok(())
+        } else {
+            Err(LighthouseError::Server { code: response.code, message: response.response })
+        }
     }
 
     pub async fn receive_message(&mut self) -> LighthouseResult<ServerMessage> {

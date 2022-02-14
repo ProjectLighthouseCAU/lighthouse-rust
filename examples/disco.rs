@@ -17,9 +17,6 @@ async fn run(auth: Authentication) -> LighthouseResult<()> {
         conn.send_display(Display::fill(random_color())).await?;
         info!("Sent display");
 
-        let response = conn.receive_message().await?;
-        info!("Got response {:?}", response);
-
         task::sleep(Duration::from_secs(1)).await;
     }
 }

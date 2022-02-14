@@ -8,6 +8,7 @@ pub enum LighthouseError {
     Tungstenite(tungstenite::Error),
     Encode(encode::Error),
     Decode(decode::Error),
+    Server { code: i32, message: Option<String> },
     Custom(String),
 }
 
