@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Serialize, Deserialize};
+use serde_with::rust::deserialize_ignore_any;
 
 use crate::{Authentication, Display};
 
@@ -9,6 +10,8 @@ use crate::{Authentication, Display};
 #[serde(untagged)]
 pub enum Payload {
     Display(Display),
+    #[serde(deserialize_with = "deserialize_ignore_any")]
+    Empty,
 }
 
 /// A message originating from the lighthouse client.
@@ -39,7 +42,6 @@ pub struct ServerMessage {
     pub warnings: Vec<String>,
     #[serde(rename = "RESPONSE")]
     pub response: Option<String>,
-    // TODO: Support other cases
-    // #[serde(rename = "PAYL")]
-    // pub payload: Payload,
+    #[serde(rename = "PAYL")]
+    pub payload: Payload,
 }
