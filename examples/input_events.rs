@@ -11,8 +11,8 @@ async fn run(auth: Authentication) -> LighthouseResult<()> {
     conn.request_stream().await?;
 
     loop {
-        let msg = conn.receive_input_event().await?;
-        info!("Got {:?}", msg);
+        let event = conn.receive_input_event().await?;
+        info!("Got event: {:?}", event);
     }
 }
 
