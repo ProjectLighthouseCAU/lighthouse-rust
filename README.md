@@ -18,3 +18,9 @@ You can now run an example with
 ```bash
 cargo run --example disco
 ```
+
+For a more complex example, try
+
+```bash
+cargo run --example snake
+```
