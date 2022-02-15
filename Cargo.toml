@@ -1,5 +1,6 @@
 [package]
 name = "lighthouse-client"
+description = "API client for a light installation at the University of Kiel"
 version = "0.1.0"
 edition = "2021"
 categories = ["api-bindings", "asynchronous"]
