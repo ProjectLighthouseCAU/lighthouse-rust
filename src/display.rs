@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize, de, Serializer, Deserializer};
-use std::fmt;
+use std::{fmt, ops::{Index, IndexMut}};
 
-use crate::{Color, BLACK, LIGHTHOUSE_SIZE, LIGHTHOUSE_ROWS, LIGHTHOUSE_COLS};
+use crate::{Color, BLACK, LIGHTHOUSE_SIZE, LIGHTHOUSE_ROWS, LIGHTHOUSE_COLS, Pos};
 
 /// An 'image' to be displayed on the lighthouse.
 /// The pixels are stored in row-major order.
@@ -42,12 +42,26 @@ impl Display {
 
     /// Fetches the pixel at the given position.
     pub fn get(&self, x: usize, y: usize) -> Color {
-        self.pixels[y * LIGHTHOUSE_COLS + x]
+        self[Pos::new(x, y)]
     }
 
     /// Sets the given pixel to the given color.
     pub fn set(&mut self, x: usize, y: usize, color: Color) {
-        self.pixels[y * LIGHTHOUSE_COLS + x] = color;
+        self[Pos::new(x, y)] = color;
+    }
+}
+
+impl Index<Pos> for Display {
+    type Output = Color;
+
+    fn index(&self, pos: Pos) -> &Color {
+        &self.pixels[pos.y * LIGHTHOUSE_COLS + pos.x]
+    }
+}
+
+impl IndexMut<Pos> for Display {
+    fn index_mut(&mut self, pos: Pos) -> &mut Color {
+        &mut self.pixels[pos.y * LIGHTHOUSE_COLS + pos.x]
     }
 }
 

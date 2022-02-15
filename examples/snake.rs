@@ -52,7 +52,7 @@ impl Snake {
 
     fn render_to(&self, display: &mut Display) {
         for field in &self.fields {
-            display.set(field.x as usize, field.y as usize, SNAKE_COLOR);
+            display[*field] = SNAKE_COLOR;
         }
     }
 
@@ -113,7 +113,7 @@ impl State {
     fn render(&self) -> Display {
         let mut display = Display::empty();
 
-        display.set(self.fruit.x as usize, self.fruit.y as usize, FRUIT_COLOR);
+        display[self.fruit] = FRUIT_COLOR;
         self.snake.render_to(&mut display);
 
         display
