@@ -1,8 +1,10 @@
 use async_std::{task, sync::Mutex};
 use lighthouse_client::{Connection, Authentication, LighthouseResult, LIGHTHOUSE_COLS, LIGHTHOUSE_ROWS, Display, BLACK, LIGHTHOUSE_SIZE, GREEN};
-use log::{info, Level};
+use log::{info, Level, debug};
 use rand::prelude::*;
 use std::{env, collections::VecDeque, sync::Arc, time::Duration};
+
+const UPDATE_INTERVAL: Duration = Duration::from_millis(300);
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 struct Vec2 {
@@ -48,10 +50,17 @@ struct Snake {
 }
 
 impl Snake {
-    fn new() -> Self {
+    fn from_initial_length(length: usize) -> Self {
+        let mut pos = Vec2::random_pos();
+        let dir = Vec2::random_dir();
+
         let mut fields = VecDeque::new();
-        fields.push_back(Vec2::random_pos());
-        Self { fields, dir: Vec2::random_dir() }
+        for _ in 0..length {
+            fields.push_back(pos);
+            pos = pos.add_wrapping(dir);
+        }
+
+        Self { fields, dir }
     }
 
     fn step(&mut self) {
@@ -62,6 +71,7 @@ impl Snake {
 
     fn render(&self) -> Display {
         let mut pixels = [BLACK; LIGHTHOUSE_SIZE];
+        debug!("Fields: {:?}", &self.fields);
 
         for field in &self.fields {
             pixels[field.pixel_index()] = GREEN;
@@ -85,9 +95,10 @@ async fn run_updater(auth: Authentication, shared_snake: Arc<Mutex<Snake>>) -> L
 
         // Send the rendered snake to the lighthouse
         conn.send_display(display).await?;
-        info!("Sent display");
+        debug!("Sent display");
 
-        task::sleep(Duration::from_secs(1)).await;
+        // Wait for a short period of time
+        task::sleep(UPDATE_INTERVAL).await;
     }
 }
 
@@ -127,7 +138,7 @@ fn main() {
     let username = env::var("LIGHTHOUSE_USERNAME").unwrap();
     let token = env::var("LIGHTHOUSE_TOKEN").unwrap();
     let auth = Authentication::new(username.as_str(), token.as_str());
-    let snake = Arc::new(Mutex::new(Snake::new()));
+    let snake = Arc::new(Mutex::new(Snake::from_initial_length(3)));
 
     task::spawn(run_updater(auth.clone(), snake.clone()));
     task::block_on(run_controller(auth, snake)).unwrap();
