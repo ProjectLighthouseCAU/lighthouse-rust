@@ -1,5 +1,4 @@
-use async_std::{task, sync::Mutex, channel};
-use futures::StreamExt;
+use async_std::{task, sync::Mutex};
 use lighthouse_client::{Connection, Authentication, LighthouseResult, LIGHTHOUSE_COLS, LIGHTHOUSE_ROWS, Display, BLACK, LIGHTHOUSE_SIZE, GREEN};
 use log::{info, Level};
 use rand::prelude::*;
@@ -72,39 +71,53 @@ impl Snake {
     }
 }
 
-async fn run(auth: Authentication) -> LighthouseResult<()> {
-    // Set up shared state and a channel to transmit the display
-    let shared_snake = Arc::new(Mutex::new(Snake::new()));
-    let cloned_snake = shared_snake.clone();
-    let (tx, rx) = channel::bounded(1);
-
-    // Launch a task that periodically updates the snake.
-    task::spawn(async move {
-        loop {
-            let display = {
-                let mut snake = cloned_snake.lock().await;
-                snake.step();
-                snake.render()
-            };
-            tx.send(display).await;
-            task::sleep(Duration::from_secs(1)).await;
-        }
-    });
-
-    // Connect to the lighthouse
-    let conn = Connection::new(auth).await?;
+async fn run_updater(auth: Authentication, shared_snake: Arc<Mutex<Snake>>) -> LighthouseResult<()> {
+    let mut conn = Connection::new(auth).await?;
     info!("Connected to the Lighthouse server");
+
+    loop {
+        // Update the snake and render it
+        let display = {
+            let mut snake = shared_snake.lock().await;
+            snake.step();
+            snake.render()
+        };
+
+        // Send the rendered snake to the lighthouse
+        conn.send_display(display).await?;
+        info!("Sent display");
+
+        task::sleep(Duration::from_secs(1)).await;
+    }
+}
+
+async fn run_controller(auth: Authentication, shared_snake: Arc<Mutex<Snake>>) -> LighthouseResult<()> {
+    let mut conn = Connection::new(auth).await?;
 
     // Request input events
     conn.request_stream().await?;
 
-    // Run the event handler
     loop {
-        match rx.next().race(conn.receive_input_event()) {
+        // Receive a user input event from the web interface
+        let event = conn.receive_input_event().await?;
 
+        if event.is_down {
+            // Map the key code to a direction vector
+            let opt_dir = match event.key {
+                Some(37) => Some(Vec2::new(-1,  0)), // Left
+                Some(38) => Some(Vec2::new( 0, -1)), // Up
+                Some(39) => Some(Vec2::new( 1,  0)), // Right
+                Some(40) => Some(Vec2::new( 0,  1)), // Down
+                _ => None,
+            };
+
+            // Update the snake's direction
+            if let Some(dir) = opt_dir {
+                info!("Rotating snake to point to {:?}", dir);
+                let mut snake = shared_snake.lock().await;
+                snake.dir = dir;
+            }
         }
-
-        task::sleep(Duration::from_secs(1)).await;
     }
 }
 
@@ -114,6 +127,8 @@ fn main() {
     let username = env::var("LIGHTHOUSE_USERNAME").unwrap();
     let token = env::var("LIGHTHOUSE_TOKEN").unwrap();
     let auth = Authentication::new(username.as_str(), token.as_str());
+    let snake = Arc::new(Mutex::new(Snake::new()));
 
-    task::block_on(run(auth)).unwrap();
+    task::spawn(run_updater(auth.clone(), snake.clone()));
+    task::block_on(run_controller(auth, snake)).unwrap();
 }
