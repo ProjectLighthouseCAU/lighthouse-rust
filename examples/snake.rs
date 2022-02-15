@@ -70,15 +70,17 @@ impl Snake {
         Self { fields, dir }
     }
 
-    fn head(&self) -> Vec2 {
-        *self.fields.front().unwrap()
+    fn head(&self) -> Vec2 { *self.fields.front().unwrap() }
+
+    fn back(&self) -> Vec2 { *self.fields.back().unwrap() }
+
+    fn grow(&mut self) {
+        self.fields.push_back(self.back().add_wrapping(-self.dir));
     }
 
-    fn step(&mut self, grow: bool) {
+    fn step(&mut self) {
         let head = self.head();
-        if !grow {
-            self.fields.pop_back();
-        }
+        self.fields.pop_back();
         self.fields.push_front(head.add_wrapping(self.dir));
     }
 
@@ -133,13 +135,10 @@ impl State {
     }
 
     fn step(&mut self) {
-        let grow = self.snake.head() == self.fruit;
-        self.snake.step(grow);
+        self.snake.step();
 
-        if self.snake.intersects_itself() {
-            info!("Game over!");
-            self.reset();
-        } else if grow {
+        if self.snake.head() == self.fruit {
+            self.snake.grow();
             info!("Snake now has length {}", self.snake.len());
             if let Some(fruit) = self.snake.random_fruit_pos() {
                 self.fruit = fruit;
@@ -147,6 +146,9 @@ impl State {
                 info!("You win!");
                 self.reset();
             }
+        } else if self.snake.intersects_itself() {
+            info!("Game over!");
+            self.reset();
         }
     }
 
