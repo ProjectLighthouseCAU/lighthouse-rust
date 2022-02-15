@@ -1,11 +1,7 @@
 use serde::{Serialize, Deserialize, de, Serializer, Deserializer};
 use std::fmt;
 
-use crate::{Color, BLACK};
-
-pub const LIGHTHOUSE_ROWS: usize = 14;
-pub const LIGHTHOUSE_COLS: usize = 28;
-pub const LIGHTHOUSE_SIZE: usize = LIGHTHOUSE_ROWS * LIGHTHOUSE_COLS;
+use crate::{Color, BLACK, LIGHTHOUSE_SIZE, LIGHTHOUSE_ROWS, LIGHTHOUSE_COLS};
 
 /// An 'image' to be displayed on the lighthouse.
 /// The pixels are stored in row-major order.
