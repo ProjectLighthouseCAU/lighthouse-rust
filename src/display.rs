@@ -15,6 +15,11 @@ pub struct Display {
 }
 
 impl Display {
+    /// Creates a new empty `Display`.
+    pub fn empty() -> Self {
+        Self::fill(BLACK)
+    }
+
     /// Creates a new `Display` from the given pixels in
     /// row-major order.
     pub fn new(pixels: [Color; LIGHTHOUSE_SIZE]) -> Self {
@@ -30,13 +35,23 @@ impl Display {
     /// that associates each position of the form `(x, y)` with a
     /// color.
     pub fn generate(f: impl Fn(usize, usize) -> Color) -> Self {
-        let mut pixels = [BLACK; LIGHTHOUSE_SIZE];
+        let mut display = Self::empty();
         for y in 0..LIGHTHOUSE_ROWS {
             for x in 0..LIGHTHOUSE_COLS {
-                pixels[y * LIGHTHOUSE_COLS + x] = f(x, y);
+                display.set(x, y, f(x, y));
             }
         }
-        Self { pixels }
+        display
+    }
+
+    /// Fetches the pixel at the given position.
+    pub fn get(&self, x: usize, y: usize) -> Color {
+        self.pixels[y * LIGHTHOUSE_COLS + x]
+    }
+
+    /// Sets the given pixel to the given color.
+    pub fn set(&mut self, x: usize, y: usize, color: Color) {
+        self.pixels[y * LIGHTHOUSE_COLS + x] = color;
     }
 }
 

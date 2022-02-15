@@ -1,10 +1,13 @@
 use async_std::{task, sync::Mutex};
-use lighthouse_client::{Connection, Authentication, LighthouseResult, LIGHTHOUSE_COLS, LIGHTHOUSE_ROWS, Display, BLACK, LIGHTHOUSE_SIZE, GREEN};
+use lighthouse_client::{Connection, Authentication, LighthouseResult, LIGHTHOUSE_COLS, LIGHTHOUSE_ROWS, Display, LIGHTHOUSE_SIZE, GREEN, Color, RED};
 use log::{info, Level, debug};
 use rand::prelude::*;
-use std::{env, collections::VecDeque, sync::Arc, time::Duration};
+use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration, ops::Neg};
 
 const UPDATE_INTERVAL: Duration = Duration::from_millis(300);
+const FRUIT_COLOR: Color = RED;
+const SNAKE_COLOR: Color = GREEN;
+const SNAKE_INITIAL_LENGTH: usize = 3;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 struct Vec2 {
@@ -31,15 +34,19 @@ impl Vec2 {
         }
     }
 
-    fn pixel_index(self) -> usize {
-        self.y as usize * LIGHTHOUSE_COLS + self.x as usize
-    }
-
     fn add_wrapping(self, rhs: Self) -> Self {
         Self::new(
             (self.x + rhs.x).rem_euclid(LIGHTHOUSE_COLS as i32),
             (self.y + rhs.y).rem_euclid(LIGHTHOUSE_ROWS as i32),
         )
+    }
+}
+
+impl Neg for Vec2 {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        Self::new(-self.x, -self.y)
     }
 }
 
@@ -57,40 +64,112 @@ impl Snake {
         let mut fields = VecDeque::new();
         for _ in 0..length {
             fields.push_back(pos);
-            pos = pos.add_wrapping(dir);
+            pos = pos.add_wrapping(-dir);
         }
 
         Self { fields, dir }
     }
 
-    fn step(&mut self) {
-        let head = *self.fields.front().unwrap();
-        self.fields.pop_back();
+    fn head(&self) -> Vec2 {
+        *self.fields.front().unwrap()
+    }
+
+    fn step(&mut self, grow: bool) {
+        let head = self.head();
+        if !grow {
+            self.fields.pop_back();
+        }
         self.fields.push_front(head.add_wrapping(self.dir));
     }
 
-    fn render(&self) -> Display {
-        let mut pixels = [BLACK; LIGHTHOUSE_SIZE];
-        debug!("Fields: {:?}", &self.fields);
+    fn intersects_itself(&self) -> bool {
+        self.fields.iter().collect::<HashSet<_>>().len() < self.fields.len()
+    }
 
+    fn rotate_head(&mut self, dir: Vec2) {
+        self.dir = dir;
+    }
+
+    fn render_to(&self, display: &mut Display) {
         for field in &self.fields {
-            pixels[field.pixel_index()] = GREEN;
+            display.set(field.x as usize, field.y as usize, SNAKE_COLOR);
         }
+    }
 
-        Display::new(pixels)
+    fn len(&self) -> usize {
+        self.fields.len()
+    }
+
+    fn random_fruit_pos(&self) -> Option<Vec2> {
+        let fields = self.fields.iter().collect::<HashSet<_>>();
+        if fields.len() >= LIGHTHOUSE_SIZE {
+            None
+        } else {
+            loop {
+                let pos = Vec2::random_pos();
+                if !fields.contains(&pos) {
+                    break Some(pos);
+                }
+            }
+        }
     }
 }
 
-async fn run_updater(auth: Authentication, shared_snake: Arc<Mutex<Snake>>) -> LighthouseResult<()> {
+#[derive(Debug, PartialEq, Eq, Clone)]
+struct State {
+    snake: Snake,
+    fruit: Vec2,
+}
+
+impl State {
+    fn new() -> Self {
+        let snake = Snake::from_initial_length(SNAKE_INITIAL_LENGTH);
+        let fruit = snake.random_fruit_pos().unwrap();
+        Self { snake, fruit }
+    }
+    
+    fn reset(&mut self) {
+        *self = Self::new();
+    }
+
+    fn step(&mut self) {
+        let grow = self.snake.head() == self.fruit;
+        self.snake.step(grow);
+
+        if self.snake.intersects_itself() {
+            info!("Game over!");
+            self.reset();
+        } else if grow {
+            info!("Snake now has length {}", self.snake.len());
+            if let Some(fruit) = self.snake.random_fruit_pos() {
+                self.fruit = fruit;
+            } else {
+                info!("You win!");
+                self.reset();
+            }
+        }
+    }
+
+    fn render(&self) -> Display {
+        let mut display = Display::empty();
+
+        display.set(self.fruit.x as usize, self.fruit.y as usize, FRUIT_COLOR);
+        self.snake.render_to(&mut display);
+
+        display
+    }
+}
+
+async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> LighthouseResult<()> {
     let mut conn = Connection::new(auth).await?;
     info!("Connected to the Lighthouse server");
 
     loop {
         // Update the snake and render it
         let display = {
-            let mut snake = shared_snake.lock().await;
-            snake.step();
-            snake.render()
+            let mut state = shared_state.lock().await;
+            state.step();
+            state.render()
         };
 
         // Send the rendered snake to the lighthouse
@@ -102,7 +181,7 @@ async fn run_updater(auth: Authentication, shared_snake: Arc<Mutex<Snake>>) -> L
     }
 }
 
-async fn run_controller(auth: Authentication, shared_snake: Arc<Mutex<Snake>>) -> LighthouseResult<()> {
+async fn run_controller(auth: Authentication, shared_state: Arc<Mutex<State>>) -> LighthouseResult<()> {
     let mut conn = Connection::new(auth).await?;
 
     // Request input events
@@ -124,9 +203,9 @@ async fn run_controller(auth: Authentication, shared_snake: Arc<Mutex<Snake>>) -
 
             // Update the snake's direction
             if let Some(dir) = opt_dir {
-                info!("Rotating snake to point to {:?}", dir);
-                let mut snake = shared_snake.lock().await;
-                snake.dir = dir;
+                debug!("Rotating snake head to {:?}", dir);
+                let mut state = shared_state.lock().await;
+                state.snake.rotate_head(dir);
             }
         }
     }
@@ -138,8 +217,8 @@ fn main() {
     let username = env::var("LIGHTHOUSE_USERNAME").unwrap();
     let token = env::var("LIGHTHOUSE_TOKEN").unwrap();
     let auth = Authentication::new(username.as_str(), token.as_str());
-    let snake = Arc::new(Mutex::new(Snake::from_initial_length(3)));
+    let state = Arc::new(Mutex::new(State::new()));
 
-    task::spawn(run_updater(auth.clone(), snake.clone()));
-    task::block_on(run_controller(auth, snake)).unwrap();
+    task::spawn(run_updater(auth.clone(), state.clone()));
+    task::block_on(run_controller(auth, state)).unwrap();
 }
