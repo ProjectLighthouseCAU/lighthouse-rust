@@ -4,7 +4,7 @@ use log::{info, Level, debug};
 use rand::prelude::*;
 use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration, ops::Neg};
 
-const UPDATE_INTERVAL: Duration = Duration::from_millis(300);
+const UPDATE_INTERVAL: Duration = Duration::from_millis(200);
 const FRUIT_COLOR: Color = RED;
 const SNAKE_COLOR: Color = GREEN;
 const SNAKE_INITIAL_LENGTH: usize = 3;
