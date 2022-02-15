@@ -1,94 +1,52 @@
 use async_std::{task, sync::Mutex};
-use lighthouse_client::{Connection, Authentication, LighthouseResult, LIGHTHOUSE_COLS, LIGHTHOUSE_ROWS, Display, LIGHTHOUSE_SIZE, GREEN, Color, RED};
+use lighthouse_client::{Connection, Authentication, LighthouseResult, Display, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta};
 use log::{info, Level, debug};
-use rand::prelude::*;
-use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration, ops::Neg};
+use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
 
 const UPDATE_INTERVAL: Duration = Duration::from_millis(200);
 const FRUIT_COLOR: Color = RED;
 const SNAKE_COLOR: Color = GREEN;
 const SNAKE_INITIAL_LENGTH: usize = 3;
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-struct Vec2 {
-    x: i32,
-    y: i32,
-}
-
-impl Vec2 {
-    fn new(x: i32, y: i32) -> Self {
-        Self { x, y }
-    }
-
-    fn random_pos() -> Self {
-        let mut rng = thread_rng();
-        Vec2::new(rng.gen_range(0..(LIGHTHOUSE_COLS as i32)), rng.gen_range(0..(LIGHTHOUSE_ROWS as i32)))
-    }
-
-    fn random_dir() -> Self {
-        let random_offset = || { if thread_rng().gen() { 1 } else { -1 } };
-        if thread_rng().gen() {
-            Vec2::new(0, random_offset())
-        } else {
-            Vec2::new(random_offset(), 0)
-        }
-    }
-
-    fn add_wrapping(self, rhs: Self) -> Self {
-        Self::new(
-            (self.x + rhs.x).rem_euclid(LIGHTHOUSE_COLS as i32),
-            (self.y + rhs.y).rem_euclid(LIGHTHOUSE_ROWS as i32),
-        )
-    }
-}
-
-impl Neg for Vec2 {
-    type Output = Self;
-
-    fn neg(self) -> Self {
-        Self::new(-self.x, -self.y)
-    }
-}
-
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct Snake {
-    fields: VecDeque<Vec2>,
-    dir: Vec2,
+    fields: VecDeque<Pos>,
+    dir: Delta,
 }
 
 impl Snake {
     fn from_initial_length(length: usize) -> Self {
-        let mut pos = Vec2::random_pos();
-        let dir = Vec2::random_dir();
+        let mut pos = rand::random();
+        let dir = Delta::random_direction();
 
         let mut fields = VecDeque::new();
         for _ in 0..length {
             fields.push_back(pos);
-            pos = pos.add_wrapping(-dir);
+            pos -= dir;
         }
 
         Self { fields, dir }
     }
 
-    fn head(&self) -> Vec2 { *self.fields.front().unwrap() }
+    fn head(&self) -> Pos { *self.fields.front().unwrap() }
 
-    fn back(&self) -> Vec2 { *self.fields.back().unwrap() }
+    fn back(&self) -> Pos { *self.fields.back().unwrap() }
 
     fn grow(&mut self) {
-        self.fields.push_back(self.back().add_wrapping(-self.dir));
+        self.fields.push_back(self.back() - self.dir);
     }
 
     fn step(&mut self) {
         let head = self.head();
         self.fields.pop_back();
-        self.fields.push_front(head.add_wrapping(self.dir));
+        self.fields.push_front(head + self.dir);
     }
 
     fn intersects_itself(&self) -> bool {
         self.fields.iter().collect::<HashSet<_>>().len() < self.fields.len()
     }
 
-    fn rotate_head(&mut self, dir: Vec2) {
+    fn rotate_head(&mut self, dir: Delta) {
         self.dir = dir;
     }
 
@@ -102,13 +60,13 @@ impl Snake {
         self.fields.len()
     }
 
-    fn random_fruit_pos(&self) -> Option<Vec2> {
+    fn random_fruit_pos(&self) -> Option<Pos> {
         let fields = self.fields.iter().collect::<HashSet<_>>();
         if fields.len() >= LIGHTHOUSE_SIZE {
             None
         } else {
             loop {
-                let pos = Vec2::random_pos();
+                let pos = rand::random();
                 if !fields.contains(&pos) {
                     break Some(pos);
                 }
@@ -120,7 +78,7 @@ impl Snake {
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct State {
     snake: Snake,
-    fruit: Vec2,
+    fruit: Pos,
 }
 
 impl State {
@@ -196,10 +154,10 @@ async fn run_controller(auth: Authentication, shared_state: Arc<Mutex<State>>) -
         if event.is_down {
             // Map the key code to a direction vector
             let opt_dir = match event.key {
-                Some(37) => Some(Vec2::new(-1,  0)), // Left
-                Some(38) => Some(Vec2::new( 0, -1)), // Up
-                Some(39) => Some(Vec2::new( 1,  0)), // Right
-                Some(40) => Some(Vec2::new( 0,  1)), // Down
+                Some(37) => Some(Delta::new(-1,  0)), // Left
+                Some(38) => Some(Delta::new( 0, -1)), // Up
+                Some(39) => Some(Delta::new( 1,  0)), // Right
+                Some(40) => Some(Delta::new( 0,  1)), // Down
                 _ => None,
             };
 

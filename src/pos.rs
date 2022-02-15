@@ -1,24 +1,25 @@
 use std::{fmt, ops::{Add, Sub, AddAssign, Neg, SubAssign}};
 
-use rand::{prelude::Distribution, distributions::Standard};
+use rand::{prelude::Distribution, distributions::Standard, thread_rng, Rng};
 
 use crate::{LIGHTHOUSE_COLS, LIGHTHOUSE_ROWS};
 
 /// A position on the lighthouse display.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-struct Pos {
+pub struct Pos {
     pub x: usize,
     pub y: usize,
 }
 
 /// A delta on the lighthouse display.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-struct Delta {
+pub struct Delta {
     pub dx: i32,
     pub dy: i32,
 }
 
 impl Pos {
+    /// Creates a mew position. The parameters must be in bounds.
     pub fn new(x: usize, y: usize) -> Self {
         assert!(x < LIGHTHOUSE_COLS);
         assert!(y < LIGHTHOUSE_ROWS);
@@ -27,8 +28,19 @@ impl Pos {
 }
 
 impl Delta {
+    /// Creates a new vector.
     pub fn new(dx: i32, dy: i32) -> Self {
         Self { dx, dy }
+    }
+
+    /// Randomly one of the four cardinal directions.
+    pub fn random_direction() -> Self {
+        let random_offset = || { if thread_rng().gen() { 1 } else { -1 } };
+        if thread_rng().gen() {
+            Self::new(0, random_offset())
+        } else {
+            Self::new(random_offset(), 0)
+        }
     }
 }
 

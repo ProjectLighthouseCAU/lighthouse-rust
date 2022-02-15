@@ -1,20 +1,14 @@
 use async_std::task;
-use lighthouse_client::{Color, Connection, Authentication, LighthouseResult, Display};
+use lighthouse_client::{Connection, Authentication, LighthouseResult, Display};
 use log::{info, Level};
-use rand::prelude::*;
 use std::{env, time::Duration};
-
-fn random_color() -> Color {
-    let mut rng = thread_rng();
-    Color::new(rng.gen(), rng.gen(), rng.gen())
-}
 
 async fn run(auth: Authentication) -> LighthouseResult<()> {
     let mut conn = Connection::new(auth).await?;
     info!("Connected to the Lighthouse server");
 
     loop {
-        conn.send_display(Display::fill(random_color())).await?;
+        conn.send_display(Display::fill(rand::random())).await?;
         info!("Sent display");
 
         task::sleep(Duration::from_secs(1)).await;
