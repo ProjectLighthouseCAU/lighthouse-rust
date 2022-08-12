@@ -174,7 +174,7 @@ async fn run_controller(auth: Authentication, shared_state: Arc<Mutex<State>>) -
 fn main() {
     simple_logger::init_with_level(Level::Info).unwrap();
 
-    let username = env::var("LIGHTHOUSE_USERNAME").unwrap();
+    let username = env::var("LIGHTHOUSE_USER").unwrap();
     let token = env::var("LIGHTHOUSE_TOKEN").unwrap();
     let auth = Authentication::new(username.as_str(), token.as_str());
     let state = Arc::new(Mutex::new(State::new()));
