@@ -9,7 +9,7 @@ An asynchronous API client for a light installation at the University of Kiel.
 First make sure to have a login at [lighthouse.uni-kiel.de](https://lighthouse.uni-kiel.de) and to have your credentials defined as environment variables:
 
 ```bash
-export LIGHTHOUSE_USERNAME=[your username]
+export LIGHTHOUSE_USER=[your username]
 export LIGHTHOUSE_TOKEN=[your api token]
 ```
 
