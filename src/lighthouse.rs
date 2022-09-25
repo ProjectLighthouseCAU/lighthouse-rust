@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::Arc, fmt::Debug};
 
 use async_tungstenite::tungstenite::{Message, self};
 use futures::{prelude::*, channel::mpsc::{Sender, self, Receiver}, stream::{SplitSink, SplitStream}, lock::Mutex};
@@ -39,6 +39,7 @@ impl<S> Lighthouse<S>
     }
 
     /// Runs a loop that continuously receives events.
+    #[tracing::instrument(skip(ws_stream, txs))]
     async fn run_receive_loop(mut ws_stream: SplitStream<S>, txs: Arc<Mutex<HashMap<i32, Sender<ServerMessage>>>>) {
         loop {
             match Self::receive_message_from(&mut ws_stream).await {
@@ -62,6 +63,7 @@ impl<S> Lighthouse<S>
     }
 
     /// Receives a ServerMessage from the lighthouse.
+    #[tracing::instrument(skip(ws_stream))]
     async fn receive_message_from(ws_stream: &mut SplitStream<S>) -> Result<ServerMessage> {
         let bytes = Self::receive_raw_from(ws_stream).await?;
         let message = rmp_serde::from_slice(&bytes)?;
@@ -69,6 +71,7 @@ impl<S> Lighthouse<S>
     }
 
     /// Receives raw bytes from the lighthouse via the WebSocket connection.
+    #[tracing::instrument(skip(ws_stream))]
     async fn receive_raw_from(ws_stream: &mut SplitStream<S>) -> Result<Vec<u8>> {
         loop {
             let message = ws_stream.next().await.ok_or_else(|| Error::custom("Got no message"))??;
@@ -82,24 +85,28 @@ impl<S> Lighthouse<S>
     }
 
     /// Replaces the user's lighthouse model with the given frame.
+    #[tracing::instrument(skip(self))]
     pub async fn put_model(&mut self, frame: Frame) -> Result<()> {
         let username = self.authentication.username.clone();
         self.put(["user", username.as_str(), "model"], Payload::Frame(frame)).await
     }
 
     /// Requests a stream of events (including key/controller events) for the user's lighthouse model.
+    #[tracing::instrument(skip(self))]
     pub async fn stream_model(&mut self) -> Result<Receiver<ServerMessage>> {
         let username = self.authentication.username.clone();
         self.stream(["user", username.as_str(), "model"], Payload::Empty).await
     }
 
     /// Performs a PUT request to the given path with the given payload.
-    pub async fn put(&mut self, path: impl IntoIterator<Item=&str>, payload: Payload) -> Result<()> {
+    #[tracing::instrument(skip(self))]
+    pub async fn put(&mut self, path: impl IntoIterator<Item=&str> + Debug, payload: Payload) -> Result<()> {
         self.request("PUT", path, payload).await
     }
 
     /// Performs a single request to the given path with the given payload.
-    pub async fn request(&mut self, verb: &str, path: impl IntoIterator<Item=&str>, payload: Payload) -> Result<()> {
+    #[tracing::instrument(skip(self))]
+    pub async fn request(&mut self, verb: &str, path: impl IntoIterator<Item=&str> + Debug, payload: Payload) -> Result<()> {
         assert_ne!(verb, "STREAM", "Lighthouse::request may only be used for one-off requests, use Lighthouse::stream for streaming.");
         let request_id = self.send_request(verb, path, payload).await?;
         let response = self.receive_single(request_id).await?;
@@ -108,14 +115,16 @@ impl<S> Lighthouse<S>
     }
     
     /// Performs a STREAM request to the given path with the given payload.
-    pub async fn stream(&mut self, path: impl IntoIterator<Item=&str>, payload: Payload) -> Result<Receiver<ServerMessage>> {
+    #[tracing::instrument(skip(self))]
+    pub async fn stream(&mut self, path: impl IntoIterator<Item=&str> + Debug, payload: Payload) -> Result<Receiver<ServerMessage>> {
         let request_id = self.send_request("STREAM", path, payload).await?;
         let stream = self.receive_streaming(request_id).await?;
         Ok(stream)
     }
 
     /// Sends a request to the given path with the given payload.
-    async fn send_request(&mut self, verb: &str, path: impl IntoIterator<Item=&str>, payload: Payload) -> Result<i32> {
+    #[tracing::instrument(skip(self))]
+    async fn send_request(&mut self, verb: &str, path: impl IntoIterator<Item=&str> + Debug, payload: Payload) -> Result<i32> {
         let request_id = self.request_id;
         self.request_id += 1;
         self.send_message(&ClientMessage {
@@ -130,11 +139,13 @@ impl<S> Lighthouse<S>
     }
 
     /// Sends a generic message to the lighthouse.
+    #[tracing::instrument(skip(self))]
     async fn send_message(&mut self, message: &ClientMessage) -> Result<()> {
         self.send_raw(rmp_serde::to_vec_named(message)?).await
     }
 
     /// Receives a single response for the given request id.
+    #[tracing::instrument(skip(self))]
     async fn receive_single(&self, request_id: i32) -> Result<ServerMessage> {
         let mut txs = self.txs.lock().await;
         let (tx, mut rx) = mpsc::channel(1);
@@ -143,6 +154,7 @@ impl<S> Lighthouse<S>
     }
 
     /// Receives a stream of responses for the given request id.
+    #[tracing::instrument(skip(self))]
     async fn receive_streaming(&self, request_id: i32) -> Result<Receiver<ServerMessage>> {
         // TODO: Return a custom wrapper type (instead of a standard mpsc::Receiver)
         //       that keeps a reference to the `txs` + the request id and deregisters
@@ -156,7 +168,8 @@ impl<S> Lighthouse<S>
     }
 
     /// Sends raw bytes to the lighthouse via the WebSocket connection.
-    async fn send_raw(&mut self, bytes: impl Into<Vec<u8>>) -> Result<()> {
+    #[tracing::instrument(skip(self))]
+    async fn send_raw(&mut self, bytes: impl Into<Vec<u8>> + Debug) -> Result<()> {
         Ok(self.ws_sink.send(Message::Binary(bytes.into())).await?)
     }
 }
