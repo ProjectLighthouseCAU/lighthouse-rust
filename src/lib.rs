@@ -1,3 +1,4 @@
+pub mod connect;
 mod authentication;
 mod color;
 mod constants;

@@ -26,23 +26,6 @@ impl<S> Lighthouse<S> {
     }
 }
 
-#[cfg(feature = "async-std")]
-use {async_tungstenite::{async_std::{connect_async, ConnectStream}, WebSocketStream}, crate::LIGHTHOUSE_URL};
-
-#[cfg(feature = "async-std")]
-impl Lighthouse<WebSocketStream<ConnectStream>> {
-    /// Connects to the provided lighthouse server.
-    pub async fn connect_to(url: &str, authentication: Authentication) -> LighthouseResult<Self> {
-        let (web_socket, _) = connect_async(url).await?;
-        Self::new(web_socket, authentication)
-    }
-
-    /// Connects to the Uni Kiel's lighthouse server.
-    pub async fn connect(authentication: Authentication) -> LighthouseResult<Self> {
-        Self::connect_to(LIGHTHOUSE_URL, authentication).await
-    }
-}
-
 impl<S> Lighthouse<S> where S: Stream<Item = Result<Message, tungstenite::Error>> + Sink<Message, Error = tungstenite::Error> + Unpin {
     /// Replaces the user's lighthouse model with the given frame.
     pub async fn put_frame(&mut self, frame: Frame) -> LighthouseResult<()> {
