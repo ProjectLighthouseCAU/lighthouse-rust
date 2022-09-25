@@ -9,9 +9,15 @@ license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = []
+async-std = ["dep:async-std", "async-tungstenite/async-std-runtime", "async-tungstenite/async-native-tls"]
+tokio = ["dep:tokio", "async-tungstenite/tokio-runtime", "async-tungstenite/tokio-native-tls"]
+
 [dependencies]
-async-std = "1.10" # TODO: Make the library agnostic of the async runtime
-async-tungstenite = { version = "0.17", features = ["async-std-runtime", "async-native-tls"] }
+async-std = { version = "1.10", optional = true }
+tokio = { version = "1.21", optional = true }
+async-tungstenite = { version = "0.17", features = [] }
 futures = "0.3"
 tracing = "0.1"
 serde = { version = "1.0", features = ["derive"] }
@@ -21,3 +27,15 @@ rand = "0.8"
 
 [dev-dependencies]
 tracing-subscriber = "0.3"
+
+[[example]]
+name = "disco"
+required-features = ["async-std"]
+
+[[example]]
+name = "input_events"
+required-features = ["async-std"]
+
+[[example]]
+name = "snake"
+required-features = ["async-std"]

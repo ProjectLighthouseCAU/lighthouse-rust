@@ -1,12 +1,10 @@
 use std::collections::{HashMap, VecDeque};
 
-use async_tungstenite::{async_std::{connect_async, ConnectStream}, WebSocketStream, tungstenite::{Message, self}};
+use async_tungstenite::tungstenite::{Message, self};
 use futures::prelude::*;
 use tracing::warn;
 use rmp_serde;
 use crate::{Authentication, LighthouseResult, Frame, ClientMessage, Payload, LighthouseError, ServerMessage, InputEvent};
-
-const UNI_KIEL_LIGHTHOUSE_URL: &str = "wss://lighthouse.uni-kiel.de/websocket";
 
 /// A connection to the lighthouse server for sending requests and receiving events.
 pub struct Lighthouse<S> {
@@ -28,7 +26,10 @@ impl<S> Lighthouse<S> {
     }
 }
 
-// TODO: Gate behind feature
+#[cfg(feature = "async-std")]
+use {async_tungstenite::{async_std::{connect_async, ConnectStream}, WebSocketStream}, crate::LIGHTHOUSE_URL};
+
+#[cfg(feature = "async-std")]
 impl Lighthouse<WebSocketStream<ConnectStream>> {
     /// Connects to the provided lighthouse server.
     pub async fn connect_to(url: &str, authentication: Authentication) -> LighthouseResult<Self> {
@@ -38,7 +39,7 @@ impl Lighthouse<WebSocketStream<ConnectStream>> {
 
     /// Connects to the Uni Kiel's lighthouse server.
     pub async fn connect(authentication: Authentication) -> LighthouseResult<Self> {
-        Self::connect_to(UNI_KIEL_LIGHTHOUSE_URL, authentication).await
+        Self::connect_to(LIGHTHOUSE_URL, authentication).await
     }
 }
 
