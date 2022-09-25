@@ -28,13 +28,13 @@ impl<S> Lighthouse<S> {
 
 impl<S> Lighthouse<S> where S: Stream<Item = tungstenite::Result<Message>> + Sink<Message, Error = tungstenite::Error> + Unpin {
     /// Replaces the user's lighthouse model with the given frame.
-    pub async fn put_frame(&mut self, frame: Frame) -> Result<()> {
+    pub async fn put_model(&mut self, frame: Frame) -> Result<()> {
         let username = self.authentication.username.clone();
         self.send_request("PUT", ["user", username.as_str(), "model"], Payload::Frame(frame)).await
     }
 
     /// Requests a stream of events (including key/controller events) for the user's lighthouse model.
-    pub async fn request_stream(&mut self) -> Result<()> {
+    pub async fn stream_model(&mut self) -> Result<()> {
         let username = self.authentication.username.clone();
         self.send_request("STREAM", ["user", username.as_str(), "model"], Payload::Empty).await
     }

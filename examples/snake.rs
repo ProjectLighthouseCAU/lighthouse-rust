@@ -134,7 +134,7 @@ async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> R
         };
 
         // Send the rendered snake to the lighthouse
-        lh.put_frame(frame).await?;
+        lh.put_model(frame).await?;
         debug!("Sent frame");
 
         // Wait for a short period of time
@@ -146,7 +146,7 @@ async fn run_controller(auth: Authentication, shared_state: Arc<Mutex<State>>) -
     let mut lh = Lighthouse::connect_with_async_std(auth).await?;
 
     // Request input events
-    lh.request_stream().await?;
+    lh.stream_model().await?;
 
     loop {
         // Receive a user input event from the web interface

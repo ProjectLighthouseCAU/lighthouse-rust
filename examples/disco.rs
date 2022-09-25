@@ -9,7 +9,7 @@ async fn run(auth: Authentication) -> Result<()> {
     info!("Connected to the Lighthouse server");
 
     loop {
-        lh.put_frame(Frame::fill(rand::random())).await?;
+        lh.put_model(Frame::fill(rand::random())).await?;
         info!("Sent frame");
 
         task::sleep(Duration::from_secs(1)).await;

@@ -9,7 +9,7 @@ async fn run(auth: Authentication) -> Result<()> {
     info!("Connected to the Lighthouse server");
 
     // Required to get input events
-    lh.request_stream().await?;
+    lh.stream_model().await?;
 
     loop {
         let event = lh.receive_input_event().await?;
