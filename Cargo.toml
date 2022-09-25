@@ -13,11 +13,11 @@ license = "MIT"
 async-std = "1.10" # TODO: Make the library agnostic of the async runtime
 async-tungstenite = { version = "0.16", features = ["async-std-runtime", "async-native-tls"] }
 futures = "0.3"
-log = "0.4"
+tracing = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_with = "1.12"
 rmp-serde = "1.0"
 rand = "0.8"
 
 [dev-dependencies]
-simple_logger = "2.1"
+tracing-subscriber = "0.3"

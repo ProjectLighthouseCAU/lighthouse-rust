@@ -1,6 +1,7 @@
 use async_std::task;
 use lighthouse_client::{Connection, Authentication, LighthouseResult, Display};
-use log::{info, Level};
+use tracing::info;
+use tracing_subscriber::FmtSubscriber;
 use std::{env, time::Duration};
 
 async fn run(auth: Authentication) -> LighthouseResult<()> {
@@ -16,7 +17,7 @@ async fn run(auth: Authentication) -> LighthouseResult<()> {
 }
 
 fn main() {
-    simple_logger::init_with_level(Level::Info).unwrap();
+    tracing::subscriber::set_global_default(FmtSubscriber::new()).unwrap();
 
     let username = env::var("LIGHTHOUSE_USER").unwrap();
     let token = env::var("LIGHTHOUSE_TOKEN").unwrap();

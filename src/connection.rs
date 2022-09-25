@@ -2,7 +2,7 @@ use std::collections::{HashMap, VecDeque};
 
 use async_tungstenite::{async_std::{connect_async, ConnectStream}, WebSocketStream, tungstenite::Message};
 use futures::prelude::*;
-use log::warn;
+use tracing::warn;
 use rmp_serde;
 use crate::{Authentication, LighthouseResult, Display, ClientMessage, Payload, LighthouseError, ServerMessage, InputEvent};
 
