@@ -5,11 +5,11 @@ use tracing_subscriber::FmtSubscriber;
 use std::{env, time::Duration};
 
 async fn run(auth: Authentication) -> LighthouseResult<()> {
-    let mut conn = Lighthouse::connect(auth).await?;
+    let mut lh = Lighthouse::connect(auth).await?;
     info!("Connected to the Lighthouse server");
 
     loop {
-        conn.put_frame(Frame::fill(rand::random())).await?;
+        lh.put_frame(Frame::fill(rand::random())).await?;
         info!("Sent frame");
 
         task::sleep(Duration::from_secs(1)).await;

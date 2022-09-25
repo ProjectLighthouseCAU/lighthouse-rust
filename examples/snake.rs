@@ -122,7 +122,7 @@ impl State {
 }
 
 async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> LighthouseResult<()> {
-    let mut conn = Lighthouse::connect(auth).await?;
+    let mut lh = Lighthouse::connect(auth).await?;
     info!("Connected to the Lighthouse server");
 
     loop {
@@ -134,7 +134,7 @@ async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> L
         };
 
         // Send the rendered snake to the lighthouse
-        conn.put_frame(frame).await?;
+        lh.put_frame(frame).await?;
         debug!("Sent frame");
 
         // Wait for a short period of time

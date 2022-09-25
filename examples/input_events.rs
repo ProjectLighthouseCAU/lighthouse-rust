@@ -5,14 +5,14 @@ use tracing_subscriber::FmtSubscriber;
 use std::env;
 
 async fn run(auth: Authentication) -> LighthouseResult<()> {
-    let mut conn = Lighthouse::connect(auth).await?;
+    let mut lh = Lighthouse::connect(auth).await?;
     info!("Connected to the Lighthouse server");
 
     // Required to get input events
-    conn.request_stream().await?;
+    lh.request_stream().await?;
 
     loop {
-        let event = conn.receive_input_event().await?;
+        let event = lh.receive_input_event().await?;
         info!("Got event: {:?}", event);
     }
 }
