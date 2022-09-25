@@ -122,7 +122,7 @@ impl State {
 }
 
 async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> LighthouseResult<()> {
-    let mut lh = Lighthouse::connect(auth).await?;
+    let mut lh = Lighthouse::connect_with_async_std(auth).await?;
     info!("Connected to the Lighthouse server");
 
     loop {
@@ -143,14 +143,14 @@ async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> L
 }
 
 async fn run_controller(auth: Authentication, shared_state: Arc<Mutex<State>>) -> LighthouseResult<()> {
-    let mut conn = Lighthouse::connect(auth).await?;
+    let mut lh = Lighthouse::connect_with_async_std(auth).await?;
 
     // Request input events
-    conn.request_stream().await?;
+    lh.request_stream().await?;
 
     loop {
         // Receive a user input event from the web interface
-        let event = conn.receive_input_event().await?;
+        let event = lh.receive_input_event().await?;
 
         if event.is_down {
             // Map the key code to a direction vector

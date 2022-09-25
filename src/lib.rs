@@ -1,6 +1,6 @@
-pub mod connect;
 mod authentication;
 mod color;
+mod connect;
 mod constants;
 mod frame;
 mod error;
@@ -10,6 +10,7 @@ mod protocol;
 
 pub use authentication::*;
 pub use color::*;
+pub use connect::*;
 pub use constants::*;
 pub use frame::*;
 pub use error::*;

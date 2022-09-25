@@ -2,14 +2,15 @@ use async_tungstenite::{WebSocketStream, async_std::{ConnectStream, connect_asyn
 
 use crate::{LighthouseResult, Lighthouse, Authentication, LIGHTHOUSE_URL};
 
-/// Connects to the lighthouse server at the given URL.
-pub async fn connect_to(url: &str, authentication: Authentication) -> LighthouseResult<Lighthouse<WebSocketStream<ConnectStream>>> {
-    let (web_socket, _) = connect_async(url).await?;
-    Lighthouse::new(web_socket, authentication)
-}
+impl Lighthouse<WebSocketStream<ConnectStream>> {
+    /// Connects to the lighthouse server at the given URL.
+    pub async fn connect_with_async_std_to(url: &str, authentication: Authentication) -> LighthouseResult<Self> {
+        let (web_socket, _) = connect_async(url).await?;
+        Self::new(web_socket, authentication)
+    }
 
-/// Connects to the lighthouse server at the default URL.
-pub async fn connect(authentication: Authentication) -> LighthouseResult<Lighthouse<WebSocketStream<ConnectStream>>> {
-    connect_to(LIGHTHOUSE_URL, authentication).await
+    /// Connects to the lighthouse server at the default URL.
+    pub async fn connect_with_async_std(authentication: Authentication) -> LighthouseResult<Self> {
+        Self::connect_with_async_std_to(LIGHTHOUSE_URL, authentication).await
+    }
 }
-
