@@ -1,5 +1,5 @@
 use async_std::{task, sync::Mutex};
-use lighthouse_client::{Lighthouse, Authentication, LighthouseResult, Display, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta};
+use lighthouse_client::{Lighthouse, Authentication, LighthouseResult, Frame, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta};
 use tracing::{info, debug};
 use tracing_subscriber::FmtSubscriber;
 use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
@@ -51,9 +51,9 @@ impl Snake {
         self.dir = dir;
     }
 
-    fn render_to(&self, display: &mut Display) {
+    fn render_to(&self, frame: &mut Frame) {
         for field in &self.fields {
-            display[*field] = SNAKE_COLOR;
+            frame[*field] = SNAKE_COLOR;
         }
     }
 
@@ -111,13 +111,13 @@ impl State {
         }
     }
 
-    fn render(&self) -> Display {
-        let mut display = Display::empty();
+    fn render(&self) -> Frame {
+        let mut frame = Frame::empty();
 
-        display[self.fruit] = FRUIT_COLOR;
-        self.snake.render_to(&mut display);
+        frame[self.fruit] = FRUIT_COLOR;
+        self.snake.render_to(&mut frame);
 
-        display
+        frame
     }
 }
 
@@ -127,15 +127,15 @@ async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> L
 
     loop {
         // Update the snake and render it
-        let display = {
+        let frame = {
             let mut state = shared_state.lock().await;
             state.step();
             state.render()
         };
 
         // Send the rendered snake to the lighthouse
-        conn.send_display(display).await?;
-        debug!("Sent display");
+        conn.put_frame(frame).await?;
+        debug!("Sent frame");
 
         // Wait for a short period of time
         task::sleep(UPDATE_INTERVAL).await;

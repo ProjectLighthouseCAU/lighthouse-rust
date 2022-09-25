@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 use serde_with::rust::deserialize_ignore_any;
 
-use crate::{Authentication, Display};
+use crate::{Authentication, Frame};
 
 /// A key/controller input event.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
@@ -21,7 +21,7 @@ pub struct InputEvent {
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(untagged)]
 pub enum Payload {
-    Display(Display),
+    Frame(Frame),
     InputEvent(InputEvent),
     #[serde(deserialize_with = "deserialize_ignore_any")]
     Empty,

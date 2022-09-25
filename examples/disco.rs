@@ -1,5 +1,5 @@
 use async_std::task;
-use lighthouse_client::{Lighthouse, Authentication, LighthouseResult, Display};
+use lighthouse_client::{Lighthouse, Authentication, LighthouseResult, Frame};
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 use std::{env, time::Duration};
@@ -9,8 +9,8 @@ async fn run(auth: Authentication) -> LighthouseResult<()> {
     info!("Connected to the Lighthouse server");
 
     loop {
-        conn.send_display(Display::fill(rand::random())).await?;
-        info!("Sent display");
+        conn.put_frame(Frame::fill(rand::random())).await?;
+        info!("Sent frame");
 
         task::sleep(Duration::from_secs(1)).await;
     }

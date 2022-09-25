@@ -4,7 +4,7 @@ use async_tungstenite::{async_std::{connect_async, ConnectStream}, WebSocketStre
 use futures::prelude::*;
 use tracing::warn;
 use rmp_serde;
-use crate::{Authentication, LighthouseResult, Display, ClientMessage, Payload, LighthouseError, ServerMessage, InputEvent};
+use crate::{Authentication, LighthouseResult, Frame, ClientMessage, Payload, LighthouseError, ServerMessage, InputEvent};
 
 const UNI_KIEL_LIGHTHOUSE_URL: &str = "wss://lighthouse.uni-kiel.de/websocket";
 
@@ -43,13 +43,13 @@ impl Lighthouse<WebSocketStream<ConnectStream>> {
 }
 
 impl<S> Lighthouse<S> where S: Stream<Item = Result<Message, tungstenite::Error>> + Sink<Message, Error = tungstenite::Error> + Unpin {
-    /// Sends a display (frame) to the user's lighthouse.
-    pub async fn send_display(&mut self, display: Display) -> LighthouseResult<()> {
+    /// Replaces the user's lighthouse model with the given frame.
+    pub async fn put_frame(&mut self, frame: Frame) -> LighthouseResult<()> {
         let username = self.authentication.username.clone();
-        self.send_request("PUT", ["user", username.as_str(), "model"], Payload::Display(display)).await
+        self.send_request("PUT", ["user", username.as_str(), "model"], Payload::Frame(frame)).await
     }
 
-    /// Requests a stream of events (including key/controller events) for the user's lighthouse.
+    /// Requests a stream of events (including key/controller events) for the user's lighthouse model.
     pub async fn request_stream(&mut self) -> LighthouseResult<()> {
         let username = self.authentication.username.clone();
         self.send_request("STREAM", ["user", username.as_str(), "model"], Payload::Empty).await
