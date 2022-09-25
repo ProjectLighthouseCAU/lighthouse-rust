@@ -16,7 +16,7 @@ tokio = ["dep:tokio", "async-tungstenite/tokio-runtime", "async-tungstenite/toki
 
 [dependencies]
 async-std = { version = "1.10", optional = true }
-tokio = { version = "1.21", optional = true }
+tokio = { version = "1.21", features = ["rt"], optional = true }
 async-tungstenite = { version = "0.17", features = [] }
 futures = "0.3"
 tracing = "0.1"

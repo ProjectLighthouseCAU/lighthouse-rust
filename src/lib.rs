@@ -7,6 +7,7 @@ mod error;
 mod lighthouse;
 mod pos;
 mod protocol;
+mod spawn;
 
 pub use authentication::*;
 pub use color::*;
@@ -17,3 +18,4 @@ pub use error::*;
 pub use lighthouse::*;
 pub use pos::*;
 pub use protocol::*;
+pub use spawn::*;
