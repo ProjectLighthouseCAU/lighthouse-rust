@@ -1,7 +1,7 @@
 use async_std::{task, stream::StreamExt};
 use lighthouse_client::{Lighthouse, Authentication, Result, Payload};
 use tracing::info;
-use tracing_subscriber::FmtSubscriber;
+use tracing_subscriber::{prelude::*, EnvFilter};
 use std::env;
 
 async fn run(auth: Authentication) -> Result<()> {
@@ -20,7 +20,9 @@ async fn run(auth: Authentication) -> Result<()> {
 }
 
 fn main() {
-    tracing::subscriber::set_global_default(FmtSubscriber::new()).unwrap();
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer().with_filter(EnvFilter::from_default_env()))
+        .init();
 
     let username = env::var("LIGHTHOUSE_USER").unwrap();
     let token = env::var("LIGHTHOUSE_TOKEN").unwrap();
