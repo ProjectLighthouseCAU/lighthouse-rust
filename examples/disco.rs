@@ -1,10 +1,10 @@
 use async_std::task;
-use lighthouse_client::{Lighthouse, Authentication, LighthouseResult, Frame};
+use lighthouse_client::{Lighthouse, Authentication, Result, Frame};
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 use std::{env, time::Duration};
 
-async fn run(auth: Authentication) -> LighthouseResult<()> {
+async fn run(auth: Authentication) -> Result<()> {
     let mut lh = Lighthouse::connect_with_async_std(auth).await?;
     info!("Connected to the Lighthouse server");
 

@@ -1,5 +1,5 @@
 use async_std::{task, sync::Mutex};
-use lighthouse_client::{Lighthouse, Authentication, LighthouseResult, Frame, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta};
+use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta};
 use tracing::{info, debug};
 use tracing_subscriber::FmtSubscriber;
 use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
@@ -121,7 +121,7 @@ impl State {
     }
 }
 
-async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> LighthouseResult<()> {
+async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> Result<()> {
     let mut lh = Lighthouse::connect_with_async_std(auth).await?;
     info!("Connected to the Lighthouse server");
 
@@ -142,7 +142,7 @@ async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> L
     }
 }
 
-async fn run_controller(auth: Authentication, shared_state: Arc<Mutex<State>>) -> LighthouseResult<()> {
+async fn run_controller(auth: Authentication, shared_state: Arc<Mutex<State>>) -> Result<()> {
     let mut lh = Lighthouse::connect_with_async_std(auth).await?;
 
     // Request input events

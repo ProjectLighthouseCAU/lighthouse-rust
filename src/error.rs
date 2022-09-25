@@ -1,11 +1,11 @@
 use async_tungstenite::tungstenite;
 use rmp_serde::{encode, decode};
 
-pub type LighthouseResult<T> = Result<T, LighthouseError>;
+pub type Result<T> = std::result::Result<T, Error>;
 
 /// The type for any error involved in communication with the lighthouse.
 #[derive(Debug)]
-pub enum LighthouseError {
+pub enum Error {
     Tungstenite(tungstenite::Error),
     Encode(encode::Error),
     Decode(decode::Error),
@@ -13,19 +13,19 @@ pub enum LighthouseError {
     Custom(String),
 }
 
-impl LighthouseError {
+impl Error {
     /// Creates a new `LighthouseError` from the given custom message.
     pub fn custom(s: &str) -> Self { Self::Custom(s.to_owned()) }
 }
 
-impl From<tungstenite::Error> for LighthouseError {
+impl From<tungstenite::Error> for Error {
     fn from(e: tungstenite::Error) -> Self { Self::Tungstenite(e) }
 }
 
-impl From<encode::Error> for LighthouseError {
+impl From<encode::Error> for Error {
     fn from(e: encode::Error) -> Self { Self::Encode(e) }
 }
 
-impl From<decode::Error> for LighthouseError {
+impl From<decode::Error> for Error {
     fn from(e: decode::Error) -> Self { Self::Decode(e) }
 }
