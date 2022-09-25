@@ -1,30 +1,44 @@
 use std::collections::{HashMap, VecDeque};
 
-use async_tungstenite::{async_std::{connect_async, ConnectStream}, WebSocketStream, tungstenite::Message};
+use async_tungstenite::{async_std::{connect_async, ConnectStream}, WebSocketStream, tungstenite::{Message, self}};
 use futures::prelude::*;
 use tracing::warn;
 use rmp_serde;
 use crate::{Authentication, LighthouseResult, Display, ClientMessage, Payload, LighthouseError, ServerMessage, InputEvent};
 
 /// A connection to the lighthouse server for sending requests and receiving events.
-pub struct Connection {
+pub struct Lighthouse<S> {
+    web_socket: S,
     authentication: Authentication,
-    connection: WebSocketStream<ConnectStream>,
     queued_messages: VecDeque<ServerMessage>,
     request_id: i32,
 }
 
-impl Connection {
+impl<S> Lighthouse<S> {
     /// Connects to the lighthouse using the given credentials.
-    pub async fn new(authentication: Authentication) -> LighthouseResult<Self> {
+    pub fn new(web_socket: S, authentication: Authentication) -> LighthouseResult<Self> {
         Ok(Self {
+            web_socket,
             authentication,
-            connection: connect_async("wss://lighthouse.uni-kiel.de/websocket").await?.0,
             queued_messages: VecDeque::new(),
             request_id: 0,
         })
     }
+}
 
+// TODO: Gate behind feature
+impl Lighthouse<WebSocketStream<ConnectStream>> {
+    pub async fn connect_to(url: &str, authentication: Authentication) -> LighthouseResult<Self> {
+        let (web_socket, _) = connect_async(url).await?;
+        Self::new(web_socket, authentication)
+    }
+
+    pub async fn connect(authentication: Authentication) -> LighthouseResult<Self> {
+        Self::connect_to("wss://lighthouse.uni-kiel.de/websocket", authentication).await
+    }
+}
+
+impl<S> Lighthouse<S> where S: Stream<Item = Result<Message, tungstenite::Error>> + Sink<Message, Error = tungstenite::Error> + Unpin {
     /// Sends a display (frame) to the user's lighthouse.
     pub async fn send_display(&mut self, display: Display) -> LighthouseResult<()> {
         let username = self.authentication.username.clone();
@@ -112,13 +126,13 @@ impl Connection {
 
     /// Sends raw bytes to the lighthouse via the WebSocket connection.
     async fn send(&mut self, bytes: impl Into<Vec<u8>>) -> LighthouseResult<()> {
-        Ok(self.connection.send(Message::Binary(bytes.into())).await?)
+        Ok(self.web_socket.send(Message::Binary(bytes.into())).await?)
     }
 
     /// Receives raw bytes from the lighthouse via the WebSocket connection.
     async fn receive(&mut self) -> LighthouseResult<Vec<u8>> {
         loop {
-            let message = self.connection.next().await.ok_or_else(|| LighthouseError::custom("Got no message"))??;
+            let message = self.web_socket.next().await.ok_or_else(|| LighthouseError::custom("Got no message"))??;
             match message {
                 Message::Binary(bytes) => break Ok(bytes),
                 // We ignore pings for now

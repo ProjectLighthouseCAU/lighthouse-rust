@@ -1,11 +1,11 @@
 use async_std::task;
-use lighthouse_client::{Connection, Authentication, LighthouseResult};
+use lighthouse_client::{Lighthouse, Authentication, LighthouseResult};
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 use std::env;
 
 async fn run(auth: Authentication) -> LighthouseResult<()> {
-    let mut conn = Connection::new(auth).await?;
+    let mut conn = Lighthouse::connect(auth).await?;
     info!("Connected to the Lighthouse server");
 
     // Required to get input events
