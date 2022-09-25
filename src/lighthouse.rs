@@ -6,6 +6,8 @@ use tracing::warn;
 use rmp_serde;
 use crate::{Authentication, LighthouseResult, Display, ClientMessage, Payload, LighthouseError, ServerMessage, InputEvent};
 
+const UNI_KIEL_LIGHTHOUSE_URL: &str = "wss://lighthouse.uni-kiel.de/websocket";
+
 /// A connection to the lighthouse server for sending requests and receiving events.
 pub struct Lighthouse<S> {
     web_socket: S,
@@ -28,13 +30,15 @@ impl<S> Lighthouse<S> {
 
 // TODO: Gate behind feature
 impl Lighthouse<WebSocketStream<ConnectStream>> {
+    /// Connects to the provided lighthouse server.
     pub async fn connect_to(url: &str, authentication: Authentication) -> LighthouseResult<Self> {
         let (web_socket, _) = connect_async(url).await?;
         Self::new(web_socket, authentication)
     }
 
+    /// Connects to the Uni Kiel's lighthouse server.
     pub async fn connect(authentication: Authentication) -> LighthouseResult<Self> {
-        Self::connect_to("wss://lighthouse.uni-kiel.de/websocket", authentication).await
+        Self::connect_to(UNI_KIEL_LIGHTHOUSE_URL, authentication).await
     }
 }
 
