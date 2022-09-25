@@ -1,5 +1,5 @@
-use async_std::{task, sync::Mutex};
-use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta};
+use async_std::{task, sync::Mutex, stream::StreamExt};
+use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta, Payload};
 use tracing::{info, debug};
 use tracing_subscriber::FmtSubscriber;
 use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
@@ -145,31 +145,32 @@ async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> R
 async fn run_controller(auth: Authentication, shared_state: Arc<Mutex<State>>) -> Result<()> {
     let mut lh = Lighthouse::connect_with_async_std(auth).await?;
 
-    // Request input events
-    lh.stream_model().await?;
+    // Request input events from the web interface
+    let mut stream = lh.stream_model().await?;
 
-    loop {
-        // Receive a user input event from the web interface
-        let event = lh.receive_input_event().await?;
+    while let Some(msg) = stream.next().await {
+        if let Payload::InputEvent(event) = msg.payload {
+            if event.is_down {
+                // Map the key code to a direction vector
+                let opt_dir = match event.key {
+                    Some(37) => Some(Delta::new(-1,  0)), // Left
+                    Some(38) => Some(Delta::new( 0, -1)), // Up
+                    Some(39) => Some(Delta::new( 1,  0)), // Right
+                    Some(40) => Some(Delta::new( 0,  1)), // Down
+                    _ => None,
+                };
 
-        if event.is_down {
-            // Map the key code to a direction vector
-            let opt_dir = match event.key {
-                Some(37) => Some(Delta::new(-1,  0)), // Left
-                Some(38) => Some(Delta::new( 0, -1)), // Up
-                Some(39) => Some(Delta::new( 1,  0)), // Right
-                Some(40) => Some(Delta::new( 0,  1)), // Down
-                _ => None,
-            };
-
-            // Update the snake's direction
-            if let Some(dir) = opt_dir {
-                debug!("Rotating snake head to {:?}", dir);
-                let mut state = shared_state.lock().await;
-                state.snake.rotate_head(dir);
+                // Update the snake's direction
+                if let Some(dir) = opt_dir {
+                    debug!("Rotating snake head to {:?}", dir);
+                    let mut state = shared_state.lock().await;
+                    state.snake.rotate_head(dir);
+                }
             }
         }
     }
+
+    Ok(())
 }
 
 fn main() {

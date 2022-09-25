@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 use serde_with::rust::deserialize_ignore_any;
 
-use crate::{Authentication, Frame};
+use crate::{Authentication, Frame, Result, Error};
 
 /// A key/controller input event.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
@@ -57,4 +57,15 @@ pub struct ServerMessage {
     pub response: Option<String>,
     #[serde(rename = "PAYL")]
     pub payload: Payload,
+}
+
+impl ServerMessage {
+    /// Checks this response and returns only if successful.
+    pub fn check(self) -> Result<Self> {
+        if self.code == 200 {
+            Ok(self)
+        } else {
+            Err(Error::Server { code: self.code, message: self.response })
+        }
+    }
 }

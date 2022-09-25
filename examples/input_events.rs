@@ -1,5 +1,5 @@
-use async_std::task;
-use lighthouse_client::{Lighthouse, Authentication, Result};
+use async_std::{task, stream::StreamExt};
+use lighthouse_client::{Lighthouse, Authentication, Result, Payload};
 use tracing::info;
 use tracing_subscriber::FmtSubscriber;
 use std::env;
@@ -8,13 +8,15 @@ async fn run(auth: Authentication) -> Result<()> {
     let mut lh = Lighthouse::connect_with_async_std(auth).await?;
     info!("Connected to the Lighthouse server");
 
-    // Required to get input events
-    lh.stream_model().await?;
-
-    loop {
-        let event = lh.receive_input_event().await?;
-        info!("Got event: {:?}", event);
+    // Stream input events
+    let mut stream = lh.stream_model().await?;
+    while let Some(msg) = stream.next().await {
+        if let Payload::InputEvent(event) = msg.payload {
+            info!("Got input event: {:?}", event)
+        }
     }
+
+    Ok(())
 }
 
 fn main() {
