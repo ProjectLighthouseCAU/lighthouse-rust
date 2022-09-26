@@ -73,6 +73,10 @@ mod tests {
     fn test_rotation() {
         assert_eq!(Rotation::IDENTITY * Delta::new(4, -3), Delta::new(4, -3));
         assert_eq!(Rotation::CW_90 * Delta::new(2, 3), Delta::new(-3, 2));
+        assert_eq!(Rotation::CW_90 * Delta::RIGHT, Delta::DOWN);
+        assert_eq!(Rotation::CW_90 * Delta::DOWN, Delta::LEFT);
+        assert_eq!(Rotation::CW_90 * Delta::LEFT, Delta::UP);
+        assert_eq!(Rotation::CW_90 * Delta::UP, Delta::RIGHT);
     }
 
     #[test]
