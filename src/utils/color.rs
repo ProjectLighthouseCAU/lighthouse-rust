@@ -1,14 +1,5 @@
 use rand::{prelude::Distribution, distributions::Standard};
 
-pub const BLACK: Color = Color { red: 0, green: 0, blue: 0 };
-pub const WHITE: Color = Color { red: 255, green: 255, blue: 255 };
-pub const RED: Color = Color { red: 255, green: 0, blue: 0 };
-pub const GREEN: Color = Color { red: 0, green: 255, blue: 0 };
-pub const BLUE: Color = Color { red: 0, green: 0, blue: 255 };
-pub const YELLOW: Color = Color { red: 255, green: 255, blue: 0 };
-pub const CYAN: Color = Color { red: 0, green: 255, blue: 255 };
-pub const MAGENTA: Color = Color { red: 255, green: 0, blue: 255 };
-
 /// An RGB color.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Color {
@@ -18,8 +9,17 @@ pub struct Color {
 }
 
 impl Color {
+    pub const BLACK: Self = Self { red: 0, green: 0, blue: 0 };
+    pub const WHITE: Self = Self { red: 255, green: 255, blue: 255 };
+    pub const RED: Self = Self { red: 255, green: 0, blue: 0 };
+    pub const GREEN: Self = Self { red: 0, green: 255, blue: 0 };
+    pub const BLUE: Self = Self { red: 0, green: 0, blue: 255 };
+    pub const YELLOW: Self = Self { red: 255, green: 255, blue: 0 };
+    pub const CYAN: Self = Self { red: 0, green: 255, blue: 255 };
+    pub const MAGENTA: Self = Self { red: 255, green: 0, blue: 255 };
+
     /// Creates a new color from the given RGB components.
-    pub fn new(red: u8, green: u8, blue: u8) -> Self {
+    pub const fn new(red: u8, green: u8, blue: u8) -> Self {
         Self { red, green, blue }
     }
 }

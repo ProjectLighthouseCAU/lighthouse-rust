@@ -1,13 +1,13 @@
 use async_std::{task, sync::Mutex, stream::StreamExt};
 use futures::Stream;
-use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta, Payload, ServerMessage, AsyncStdWebSocket};
+use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, Color, Pos, Delta, Payload, ServerMessage, AsyncStdWebSocket};
 use tracing::{info, debug};
 use tracing_subscriber::EnvFilter;
 use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
 
 const UPDATE_INTERVAL: Duration = Duration::from_millis(200);
-const FRUIT_COLOR: Color = RED;
-const SNAKE_COLOR: Color = GREEN;
+const FRUIT_COLOR: Color = Color::RED;
+const SNAKE_COLOR: Color = Color::GREEN;
 const SNAKE_INITIAL_LENGTH: usize = 3;
 
 #[derive(Debug, PartialEq, Eq, Clone)]

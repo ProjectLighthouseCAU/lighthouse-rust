@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize, de, Serializer, Deserializer};
 use std::{fmt, ops::{Index, IndexMut}};
 
-use crate::{Color, BLACK, LIGHTHOUSE_SIZE, LIGHTHOUSE_ROWS, LIGHTHOUSE_COLS, Pos};
+use crate::{Color, LIGHTHOUSE_SIZE, LIGHTHOUSE_ROWS, LIGHTHOUSE_COLS, Pos};
 
 /// An 'image' to be displayed on the lighthouse.
 /// The pixels are stored in row-major order.
@@ -13,7 +13,7 @@ pub struct Frame {
 impl Frame {
     /// Creates a new empty `Frame`.
     pub fn empty() -> Self {
-        Self::fill(BLACK)
+        Self::fill(Color::BLACK)
     }
 
     /// Creates a new `Frame` from the given pixels in
