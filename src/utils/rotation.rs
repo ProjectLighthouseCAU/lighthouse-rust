@@ -38,15 +38,20 @@ impl Rotation {
         Self { matrix }
     }
 
-    /// Randomly one of the four cardinal rotations.
-    pub fn random_cardinal() -> Self {
-        match thread_rng().gen_range(0..4) {
+    /// Randomly one of the four cardinal rotations with the given rng.
+    pub fn random_cardinal_with(rng: &mut impl Rng) -> Self {
+        match rng.gen_range(0..4) {
             0 => Self::IDENTITY,
             1 => Self::CW_90,
             2 => Self::CW_180,
             3 => Self::CW_270,
             _ => unreachable!(),
         }
+    }
+
+    /// Randomly one of the four cardinal rotations with the thread-local rng.
+    pub fn random_cardinal() -> Self {
+        Self::random_cardinal_with(&mut thread_rng())
     }
 }
 

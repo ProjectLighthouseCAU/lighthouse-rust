@@ -1,5 +1,7 @@
 use std::{fmt, ops::{Add, Sub, Neg}};
 
+use rand::{Rng, thread_rng};
+
 use crate::Rotation;
 
 /// A 2D vector on the lighthouse display.
@@ -24,9 +26,14 @@ impl Delta {
         Self { dx, dy }
     }
 
-    /// Randomly one of the four cardinal directions.
+    /// Randomly one of the four cardinal directions with the given rng.
+    pub fn random_cardinal_with(rng: &mut impl Rng) -> Self {
+        Rotation::random_cardinal_with(rng) * Self::RIGHT
+    }
+
+    /// Randomly one of the four cardinal directions with the thread-local rng.
     pub fn random_cardinal() -> Self {
-        Rotation::random_cardinal() * Self::RIGHT
+        Self::random_cardinal_with(&mut thread_rng())
     }
 }
 
