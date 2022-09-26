@@ -98,7 +98,8 @@ impl State {
 
         if self.snake.head() == self.fruit {
             self.snake.grow();
-            info!("Snake now has length {}", self.snake.len());
+            let length = self.snake.len();
+            info! { %length, "Snake grew" };
             if let Some(fruit) = self.snake.random_fruit_pos() {
                 self.fruit = fruit;
             } else {
