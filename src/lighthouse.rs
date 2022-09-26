@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc, fmt::Debug};
 
 use async_tungstenite::tungstenite::{Message, self};
 use futures::{prelude::*, channel::mpsc::{Sender, self, Receiver}, stream::{SplitSink, SplitStream}, lock::Mutex};
-use tracing::{warn, error, info};
+use tracing::{warn, error, debug};
 use crate::{Authentication, Result, Frame, ClientMessage, Payload, Error, ServerMessage, Spawner};
 
 /// A connection to the lighthouse server for sending requests and receiving events.
@@ -123,7 +123,7 @@ impl<S> Lighthouse<S>
     async fn send_request(&mut self, verb: &str, path: impl IntoIterator<Item=&str> + Debug, payload: Payload) -> Result<i32> {
         let path = path.into_iter().map(|s| s.to_owned()).collect();
         let request_id = self.request_id;
-        info! { %request_id, "Sending request" };
+        debug! { %request_id, "Sending request" };
         self.request_id += 1;
         self.send_message(&ClientMessage {
             request_id,
@@ -144,9 +144,7 @@ impl<S> Lighthouse<S>
     /// Receives a single response for the given request id.
     #[tracing::instrument(skip(self))]
     async fn receive_single(&self, request_id: i32) -> Result<ServerMessage> {
-        let mut txs = self.txs.lock().await;
-        let (tx, mut rx) = mpsc::channel(1);
-        txs.insert(request_id, tx);
+        let mut rx = self.receive(request_id).await?;
         rx.next().await.ok_or_else(|| Error::Custom(format!("No response for {}", request_id)))
     }
 
@@ -158,6 +156,10 @@ impl<S> Lighthouse<S>
         //       the corresponding sender on drop, along with sending a STOP
         //       request.
 
+        self.receive(request_id).await
+    }
+
+    async fn receive(&self, request_id: i32) -> Result<Receiver<ServerMessage>> {
         let mut txs = self.txs.lock().await;
         let (tx, rx) = mpsc::channel(4);
         txs.insert(request_id, tx);
