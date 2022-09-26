@@ -1,5 +1,7 @@
 use async_std::{task, sync::Mutex, stream::StreamExt};
-use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta, Payload};
+use async_tungstenite::{WebSocketStream, async_std::ConnectStream};
+use futures::Stream;
+use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta, Payload, ServerMessage};
 use tracing::{info, debug};
 use tracing_subscriber::EnvFilter;
 use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
@@ -122,10 +124,7 @@ impl State {
     }
 }
 
-async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> Result<()> {
-    let mut lh = Lighthouse::connect_with_async_std(auth).await?;
-    info!("Connected to the Lighthouse server");
-
+async fn run_updater(mut lh: Lighthouse<WebSocketStream<ConnectStream>>, shared_state: Arc<Mutex<State>>) -> Result<()> {
     loop {
         // Update the snake and render it
         let frame = {
@@ -143,12 +142,7 @@ async fn run_updater(auth: Authentication, shared_state: Arc<Mutex<State>>) -> R
     }
 }
 
-async fn run_controller(auth: Authentication, shared_state: Arc<Mutex<State>>) -> Result<()> {
-    let mut lh = Lighthouse::connect_with_async_std(auth).await?;
-
-    // Request input events from the web interface
-    let mut stream = lh.stream_model().await?;
-
+async fn run_controller(mut stream: impl Stream<Item = ServerMessage> + Unpin, shared_state: Arc<Mutex<State>>) -> Result<()> {
     while let Some(msg) = stream.next().await {
         if let Payload::InputEvent(event) = msg.payload {
             if event.is_down {
@@ -174,7 +168,8 @@ async fn run_controller(auth: Authentication, shared_state: Arc<Mutex<State>>) -
     Ok(())
 }
 
-fn main() {
+#[async_std::main]
+async fn main() {
     tracing_subscriber::fmt()
         .compact()
         .with_env_filter(EnvFilter::from_default_env())
@@ -185,6 +180,11 @@ fn main() {
     let auth = Authentication::new(username.as_str(), token.as_str());
     let state = Arc::new(Mutex::new(State::new()));
 
-    task::spawn(run_updater(auth.clone(), state.clone()));
-    task::block_on(run_controller(auth, state)).unwrap();
+    let mut lh = Lighthouse::connect_with_async_std(auth).await.unwrap();
+    info!("Connected to the Lighthouse server");
+
+    let stream = lh.stream_model().await.unwrap();
+
+    task::spawn(run_updater(lh, state.clone()));
+    task::block_on(run_controller(stream, state)).unwrap();
 }
