@@ -5,7 +5,7 @@ mod constants;
 mod frame;
 mod error;
 mod lighthouse;
-mod pos;
+mod utils;
 mod protocol;
 mod spawn;
 
@@ -16,6 +16,6 @@ pub use constants::*;
 pub use frame::*;
 pub use error::*;
 pub use lighthouse::*;
-pub use pos::*;
+pub use utils::*;
 pub use protocol::*;
 pub use spawn::*;
