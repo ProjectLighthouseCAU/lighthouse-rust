@@ -22,6 +22,12 @@ impl Pos {
         self.x >= 0 && self.y >= 0 && self.x < LIGHTHOUSE_COLS as i32 && self.y < LIGHTHOUSE_ROWS as i32
     }
 
+    /// Converts the position to an index.
+    pub fn to_index(self) -> usize {
+        debug_assert!(self.in_range());
+        self.y as usize * LIGHTHOUSE_ROWS + self.x as usize
+    }
+
     /// Adds a delta to this position, wrapping around.
     pub fn add_wrapping(self, rhs: Delta) -> Self {
         Self::new(
