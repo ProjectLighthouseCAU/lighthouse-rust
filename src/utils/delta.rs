@@ -10,6 +10,15 @@ pub struct Delta {
 }
 
 impl Delta {
+    /// The vector pointing one pixel to the left.
+    pub const LEFT:  Self = Self::new(-1,  0);
+    /// The vector pointing one pixel up.
+    pub const UP:    Self = Self::new( 0, -1);
+    /// The vector pointing one pixel to the right.
+    pub const RIGHT: Self = Self::new( 1,  0);
+    /// The vector pointing one pixel down.
+    pub const DOWN:  Self = Self::new( 0,  1);
+
     /// Creates a new vector.
     pub const fn new(dx: i32, dy: i32) -> Self {
         Self { dx, dy }

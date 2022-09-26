@@ -147,10 +147,10 @@ async fn run_controller(mut stream: impl Stream<Item = ServerMessage> + Unpin, s
             if event.is_down {
                 // Map the key code to a direction vector
                 let opt_dir = match event.key {
-                    Some(37) => Some(Delta::new(-1,  0)), // Left
-                    Some(38) => Some(Delta::new( 0, -1)), // Up
-                    Some(39) => Some(Delta::new( 1,  0)), // Right
-                    Some(40) => Some(Delta::new( 0,  1)), // Down
+                    Some(37) => Some(Delta::LEFT),
+                    Some(38) => Some(Delta::UP),
+                    Some(39) => Some(Delta::RIGHT),
+                    Some(40) => Some(Delta::DOWN),
                     _ => None,
                 };
 
