@@ -18,13 +18,13 @@ struct Snake {
 
 impl Snake {
     fn from_initial_length(length: usize) -> Self {
-        let mut pos = rand::random();
+        let mut pos: Pos = rand::random();
         let dir = Delta::random_direction();
 
         let mut fields = VecDeque::new();
         for _ in 0..length {
             fields.push_back(pos);
-            pos -= dir;
+            pos = pos.sub_wrapping(dir);
         }
 
         Self { fields, dir }
@@ -35,13 +35,13 @@ impl Snake {
     fn back(&self) -> Pos { *self.fields.back().unwrap() }
 
     fn grow(&mut self) {
-        self.fields.push_back(self.back() - self.dir);
+        self.fields.push_back(self.back().sub_wrapping(self.dir));
     }
 
     fn step(&mut self) {
         let head = self.head();
         self.fields.pop_back();
-        self.fields.push_front(head + self.dir);
+        self.fields.push_front(head.add_wrapping(self.dir));
     }
 
     fn intersects_itself(&self) -> bool {

@@ -42,12 +42,12 @@ impl Frame {
 
     /// Fetches the pixel at the given position.
     pub fn get(&self, x: usize, y: usize) -> Color {
-        self[Pos::new(x, y)]
+        self.pixels[y * LIGHTHOUSE_COLS + x]
     }
 
     /// Sets the given pixel to the given color.
     pub fn set(&mut self, x: usize, y: usize, color: Color) {
-        self[Pos::new(x, y)] = color;
+        self.pixels[y * LIGHTHOUSE_COLS + x] = color;
     }
 }
 
@@ -55,13 +55,15 @@ impl Index<Pos> for Frame {
     type Output = Color;
 
     fn index(&self, pos: Pos) -> &Color {
-        &self.pixels[pos.y * LIGHTHOUSE_COLS + pos.x]
+        debug_assert!(pos.in_range());
+        &self.pixels[pos.y as usize * LIGHTHOUSE_COLS + pos.x as usize]
     }
 }
 
 impl IndexMut<Pos> for Frame {
     fn index_mut(&mut self, pos: Pos) -> &mut Color {
-        &mut self.pixels[pos.y * LIGHTHOUSE_COLS + pos.x]
+        debug_assert!(pos.in_range());
+        &mut self.pixels[pos.y as usize * LIGHTHOUSE_COLS + pos.x as usize]
     }
 }
 
