@@ -19,7 +19,7 @@ struct Snake {
 impl Snake {
     fn from_initial_length(length: usize) -> Self {
         let mut pos: Pos = rand::random();
-        let dir = Delta::random_direction();
+        let dir = Delta::random_cardinal();
 
         let mut fields = VecDeque::new();
         for _ in 0..length {

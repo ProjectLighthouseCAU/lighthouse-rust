@@ -1,6 +1,6 @@
 use std::{fmt, ops::{Add, Sub, Neg}};
 
-use rand::{thread_rng, Rng};
+use crate::Rotation;
 
 /// A 2D vector on the lighthouse display.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -25,13 +25,8 @@ impl Delta {
     }
 
     /// Randomly one of the four cardinal directions.
-    pub fn random_direction() -> Self {
-        let random_offset = || { if thread_rng().gen() { 1 } else { -1 } };
-        if thread_rng().gen() {
-            Self::new(0, random_offset())
-        } else {
-            Self::new(random_offset(), 0)
-        }
+    pub fn random_cardinal() -> Self {
+        Rotation::random_cardinal() * Self::RIGHT
     }
 }
 

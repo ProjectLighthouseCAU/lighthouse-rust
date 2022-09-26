@@ -1,8 +1,10 @@
 use std::ops::Mul;
 
+use rand::{thread_rng, Rng};
+
 use crate::Delta;
 
-/// An 2D rotation into one of the four cardinal directions.
+/// An 2D rotation that is representable using an integer matrix.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Rotation {
     /// The integer matrix representing the corresponding linear transformation.
@@ -34,6 +36,17 @@ impl Rotation {
     /// Creates a new rotation from the given matrix.
     pub const fn new(matrix: [i32; 4]) -> Self {
         Self { matrix }
+    }
+
+    /// Randomly one of the four cardinal rotations.
+    pub fn random_cardinal() -> Self {
+        match thread_rng().gen_range(0..4) {
+            0 => Self::IDENTITY,
+            1 => Self::CW_90,
+            2 => Self::CW_180,
+            3 => Self::CW_270,
+            _ => unreachable!(),
+        }
     }
 }
 
