@@ -20,7 +20,7 @@ pub struct Delta {
 
 impl Pos {
     /// Creates a mew position. The parameters must be in bounds.
-    pub fn new(x: usize, y: usize) -> Self {
+    pub const fn new(x: usize, y: usize) -> Self {
         assert!(x < LIGHTHOUSE_COLS);
         assert!(y < LIGHTHOUSE_ROWS);
         Self { x, y }
@@ -29,7 +29,7 @@ impl Pos {
 
 impl Delta {
     /// Creates a new vector.
-    pub fn new(dx: i32, dy: i32) -> Self {
+    pub const fn new(dx: i32, dy: i32) -> Self {
         Self { dx, dy }
     }
 
