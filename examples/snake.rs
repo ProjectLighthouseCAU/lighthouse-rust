@@ -1,7 +1,7 @@
 use async_std::{task, sync::Mutex, stream::StreamExt};
 use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta, Payload};
 use tracing::{info, debug};
-use tracing_subscriber::{prelude::*, EnvFilter};
+use tracing_subscriber::EnvFilter;
 use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
 
 const UPDATE_INTERVAL: Duration = Duration::from_millis(200);
@@ -174,8 +174,9 @@ async fn run_controller(auth: Authentication, shared_state: Arc<Mutex<State>>) -
 }
 
 fn main() {
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer().with_filter(EnvFilter::from_default_env()))
+    tracing_subscriber::fmt()
+        .compact()
+        .with_env_filter(EnvFilter::from_default_env())
         .init();
 
     let username = env::var("LIGHTHOUSE_USER").unwrap();
