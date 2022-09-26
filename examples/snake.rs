@@ -1,7 +1,6 @@
 use async_std::{task, sync::Mutex, stream::StreamExt};
-use async_tungstenite::{WebSocketStream, async_std::ConnectStream};
 use futures::Stream;
-use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta, Payload, ServerMessage};
+use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, GREEN, Color, RED, Pos, Delta, Payload, ServerMessage, AsyncStdWebSocket};
 use tracing::{info, debug};
 use tracing_subscriber::EnvFilter;
 use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
@@ -124,7 +123,7 @@ impl State {
     }
 }
 
-async fn run_updater(mut lh: Lighthouse<WebSocketStream<ConnectStream>>, shared_state: Arc<Mutex<State>>) -> Result<()> {
+async fn run_updater(mut lh: Lighthouse<AsyncStdWebSocket>, shared_state: Arc<Mutex<State>>) -> Result<()> {
     loop {
         // Update the snake and render it
         let frame = {
