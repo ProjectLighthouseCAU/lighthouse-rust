@@ -24,3 +24,5 @@ For a more complex example, try
 ```bash
 cargo run --features async-std --example snake
 ```
+
+> **Note:** While the default tracing subscriber used by the examples doesn't log by default, setting the `RUST_LOG` environment variable e.g. to `info` will output the corresponding events.
