@@ -2,7 +2,7 @@ use std::{fmt, ops::{Add, Sub, Neg}};
 
 use rand::{thread_rng, Rng};
 
-/// A delta on the lighthouse display.
+/// A 2D vector on the lighthouse display.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Delta {
     pub dx: i32,
