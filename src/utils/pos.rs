@@ -4,7 +4,7 @@ use rand::{prelude::Distribution, distributions::Standard};
 
 use crate::{LIGHTHOUSE_COLS, LIGHTHOUSE_ROWS, Delta};
 
-/// A position on the lighthouse display.
+/// A position on the integer grid.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Pos {
     pub x: i32,
@@ -12,7 +12,7 @@ pub struct Pos {
 }
 
 impl Pos {
-    /// Creates a mew position. The parameters must be in bounds.
+    /// Creates a mew position.
     pub const fn new(x: i32, y: i32) -> Self {
         Self { x, y }
     }
