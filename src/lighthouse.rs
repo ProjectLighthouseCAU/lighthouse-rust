@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc, fmt::Debug};
 
 use async_tungstenite::tungstenite::{Message, self};
 use futures::{prelude::*, channel::mpsc::{Sender, self, Receiver}, stream::{SplitSink, SplitStream}, lock::Mutex};
-use tracing::{warn, error, debug};
+use tracing::{warn, error, debug, info};
 use crate::{Authentication, Result, Frame, ClientMessage, Payload, Error, ServerMessage, Spawner};
 
 /// A connection to the lighthouse server for sending requests and receiving events.
@@ -48,10 +48,15 @@ impl<S> Lighthouse<S>
                     if let Some(request_id) = msg.request_id {
                         if let Some(tx) = txs.get_mut(&request_id) {
                             if let Err(e) = tx.send(msg).await {
-                                warn!("Could not send received message: {:?}", e);
+                                if e.is_disconnected() {
+                                    info!("Receiver for request id {} disconnected, removing the sender...", request_id);
+                                    txs.remove(&request_id);
+                                } else {
+                                    warn!("Could not send message for request id {} via channel: {:?}", request_id, e);
+                                }
                             }
                         } else {
-                            warn!("No channel registered for request id in received message: {:?}", msg);
+                            warn!("No channel registered for request id {}", request_id);
                         }
                     } else {
                         warn!("Got message without request id from server: {:?}", msg);
