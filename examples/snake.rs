@@ -2,7 +2,6 @@ use async_std::{task, sync::Mutex, stream::StreamExt};
 use futures::Stream;
 use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, Color, Pos, Delta, Payload, ServerMessage, AsyncStdWebSocket, LIGHTHOUSE_RECT};
 use tracing::{info, debug};
-use tracing_subscriber::EnvFilter;
 use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
 
 const UPDATE_INTERVAL: Duration = Duration::from_millis(200);
@@ -169,10 +168,7 @@ async fn run_controller(mut stream: impl Stream<Item = ServerMessage> + Unpin, s
 
 #[async_std::main]
 async fn main() {
-    tracing_subscriber::fmt()
-        .compact()
-        .with_env_filter(EnvFilter::from_default_env())
-        .init();
+    tracing_subscriber::fmt().init();
 
     let username = env::var("LIGHTHOUSE_USER").unwrap();
     let token = env::var("LIGHTHOUSE_TOKEN").unwrap();
