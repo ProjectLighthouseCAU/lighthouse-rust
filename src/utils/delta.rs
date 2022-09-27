@@ -12,6 +12,9 @@ pub struct Delta {
 }
 
 impl Delta {
+    /// The empty delta.
+    pub const ZERO: Self = Self::new(0, 0);
+
     /// The vector pointing one pixel to the left.
     pub const LEFT:  Self = Self::new(-1,  0);
     /// The vector pointing one pixel up.

@@ -1,6 +1,8 @@
 use std::ops::Range;
 
-use crate::{Pos, Delta};
+use rand::{Rng, seq::IteratorRandom, thread_rng};
+
+use crate::{Pos, Delta, LIGHTHOUSE_COLS};
 
 /// A rectangle on the integer grid.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -29,6 +31,30 @@ impl Rect {
     pub const fn contains(self, pos: Pos) -> bool {
         pos.x >= self.origin.x && pos.x < self.origin.x + self.width()
         && pos.y >= self.origin.y && pos.y < self.origin.y + self.height()
+    }
+
+    /// Converts a position to an index.
+    pub fn index_of(self, pos: Pos) -> usize {
+        debug_assert!(self.contains(pos));
+        let relative = pos - self.origin;
+        relative.dy as usize * LIGHTHOUSE_COLS + relative.dx as usize
+    }
+
+    /// Whether this rectangle is empty.
+    pub const fn is_empty(self) -> bool {
+        self.size.dx == 0 && self.size.dy == 0
+    }
+
+    /// Samples a random position within the rectangle with the given rng.
+    pub fn sample_random_with(self, rng: &mut impl Rng) -> Option<Pos> {
+        let x = self.x_range().choose(rng)?;
+        let y = self.y_range().choose(rng)?;
+        Some(Pos::new(x, y))
+    }
+
+    /// Samples a random position within the rectangle.
+    pub fn sample_random(self) -> Option<Pos> {
+        self.sample_random_with(&mut thread_rng())
     }
 
     /// The rectangle's width.

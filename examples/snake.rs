@@ -1,6 +1,6 @@
 use async_std::{task, sync::Mutex, stream::StreamExt};
 use futures::Stream;
-use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, Color, Pos, Delta, Payload, ServerMessage, AsyncStdWebSocket};
+use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, Color, Pos, Delta, Payload, ServerMessage, AsyncStdWebSocket, LIGHTHOUSE_RECT};
 use tracing::{info, debug};
 use tracing_subscriber::EnvFilter;
 use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
@@ -18,13 +18,13 @@ struct Snake {
 
 impl Snake {
     fn from_initial_length(length: usize) -> Self {
-        let mut pos: Pos = rand::random();
+        let mut pos: Pos = LIGHTHOUSE_RECT.sample_random().unwrap();
         let dir = Delta::random_cardinal();
 
         let mut fields = VecDeque::new();
         for _ in 0..length {
             fields.push_back(pos);
-            pos = pos.sub_wrapping(dir);
+            pos = LIGHTHOUSE_RECT.wrap(pos - dir);
         }
 
         Self { fields, dir }
@@ -35,13 +35,13 @@ impl Snake {
     fn back(&self) -> Pos { *self.fields.back().unwrap() }
 
     fn grow(&mut self) {
-        self.fields.push_back(self.back().sub_wrapping(self.dir));
+        self.fields.push_back(LIGHTHOUSE_RECT.wrap(self.back() - self.dir));
     }
 
     fn step(&mut self) {
         let head = self.head();
         self.fields.pop_back();
-        self.fields.push_front(head.add_wrapping(self.dir));
+        self.fields.push_front(LIGHTHOUSE_RECT.wrap(head + self.dir));
     }
 
     fn intersects_itself(&self) -> bool {
@@ -68,7 +68,7 @@ impl Snake {
             None
         } else {
             loop {
-                let pos = rand::random();
+                let pos = LIGHTHOUSE_RECT.sample_random().unwrap();
                 if !fields.contains(&pos) {
                     break Some(pos);
                 }

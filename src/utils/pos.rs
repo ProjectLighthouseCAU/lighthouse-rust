@@ -1,8 +1,6 @@
 use std::{fmt, ops::{Add, Sub, AddAssign, SubAssign}};
 
-use rand::{prelude::Distribution, distributions::Standard};
-
-use crate::{LIGHTHOUSE_COLS, LIGHTHOUSE_ROWS, Delta};
+use crate::Delta;
 
 /// A position on the integer grid.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -12,39 +10,12 @@ pub struct Pos {
 }
 
 impl Pos {
+    /// The origin.
+    pub const ZERO: Self = Self::new(0, 0);
+
     /// Creates a mew position.
     pub const fn new(x: i32, y: i32) -> Self {
         Self { x, y }
-    }
-
-    /// Whether the position is in range.
-    pub fn in_range(self) -> bool {
-        self.x >= 0 && self.y >= 0 && self.x < LIGHTHOUSE_COLS as i32 && self.y < LIGHTHOUSE_ROWS as i32
-    }
-
-    /// Converts the position to an index.
-    pub fn to_index(self) -> usize {
-        debug_assert!(self.in_range());
-        self.y as usize * LIGHTHOUSE_ROWS + self.x as usize
-    }
-
-    /// Adds a delta to this position, wrapping around.
-    pub fn add_wrapping(self, rhs: Delta) -> Self {
-        Self::new(
-            (self.x + rhs.dx).rem_euclid(LIGHTHOUSE_COLS as i32),
-            (self.y + rhs.dy).rem_euclid(LIGHTHOUSE_ROWS as i32),
-        )
-    }
-
-    /// Subtracts a delta from this position, wrapping around.
-    pub fn sub_wrapping(self, rhs: Delta) -> Self {
-        self.add_wrapping(-rhs)
-    }
-}
-
-impl Distribution<Pos> for Standard {
-    fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> Pos {
-        Pos::new(rng.gen_range(0..LIGHTHOUSE_COLS as i32), rng.gen_range(0..LIGHTHOUSE_ROWS as i32))
     }
 }
 
@@ -59,6 +30,14 @@ impl Add<Delta> for Pos {
 
     fn add(self, rhs: Delta) -> Self {
         Self::new(self.x + rhs.dx, self.y + rhs.dy)
+    }
+}
+
+impl Sub<Pos> for Pos {
+    type Output = Delta;
+
+    fn sub(self, rhs: Self) -> Delta {
+        Delta::new(self.x - rhs.x, self.y - rhs.y)
     }
 }
 
