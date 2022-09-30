@@ -16,11 +16,11 @@ export LIGHTHOUSE_TOKEN=[your api token]
 You can now run an example with
 
 ```bash
-cargo run --features async-std --example disco
+cargo run --example disco
 ```
 
 For a more complex example, try
 
 ```bash
-cargo run --features async-std --example snake
+cargo run --example snake
 ```

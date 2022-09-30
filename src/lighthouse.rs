@@ -103,13 +103,13 @@ impl<S> Lighthouse<S>
 
     /// Performs a PUT request to the given path with the given payload.
     pub async fn put(&mut self, path: impl IntoIterator<Item=&str> + Debug, payload: Payload) -> Result<()> {
-        self.request("PUT", path, payload).await
+        self.perform("PUT", path, payload).await
     }
 
     /// Performs a single request to the given path with the given payload.
     #[tracing::instrument(skip(self, payload))]
-    pub async fn request(&mut self, verb: &str, path: impl IntoIterator<Item=&str> + Debug, payload: Payload) -> Result<()> {
-        assert_ne!(verb, "STREAM", "Lighthouse::request may only be used for one-off requests, use Lighthouse::stream for streaming.");
+    pub async fn perform(&mut self, verb: &str, path: impl IntoIterator<Item=&str> + Debug, payload: Payload) -> Result<()> {
+        assert_ne!(verb, "STREAM", "Lighthouse::perform may only be used for one-off requests, use Lighthouse::stream for streaming.");
         let request_id = self.send_request(verb, path, payload).await?;
         let response = self.receive_single(request_id).await?;
         response.check()?;
