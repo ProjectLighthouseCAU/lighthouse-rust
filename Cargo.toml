@@ -10,7 +10,7 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = []
+default = ["tokio"]
 async-std = ["dep:async-std", "async-tungstenite/async-std-runtime", "async-tungstenite/async-native-tls"]
 tokio = ["dep:tokio", "async-tungstenite/tokio-runtime", "async-tungstenite/tokio-native-tls"]
 
@@ -27,15 +27,16 @@ rand = "0.8"
 
 [dev-dependencies]
 tracing-subscriber = { version = "0.3", features = ["env-filter", "std"] }
+tokio = { version = "1.21", features = ["rt", "macros", "time"] }
 
 [[example]]
 name = "disco"
-required-features = ["async-std"]
+required-features = ["tokio"]
 
 [[example]]
 name = "input_events"
-required-features = ["async-std"]
+required-features = ["tokio"]
 
 [[example]]
 name = "snake"
-required-features = ["async-std"]
+required-features = ["tokio"]

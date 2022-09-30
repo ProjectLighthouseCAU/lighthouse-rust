@@ -1,7 +1,7 @@
-use async_std::{task, sync::Mutex, stream::StreamExt};
-use futures::Stream;
-use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, Color, Pos, Delta, Payload, ServerMessage, AsyncStdWebSocket, LIGHTHOUSE_RECT};
+use futures::{Stream, lock::Mutex, StreamExt};
+use lighthouse_client::{Lighthouse, Authentication, Result, Frame, LIGHTHOUSE_SIZE, Color, Pos, Delta, Payload, ServerMessage, LIGHTHOUSE_RECT, TokioWebSocket};
 use tracing::{info, debug};
+use tokio::{task, time};
 use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
 
 const UPDATE_INTERVAL: Duration = Duration::from_millis(200);
@@ -122,7 +122,7 @@ impl State {
     }
 }
 
-async fn run_updater(mut lh: Lighthouse<AsyncStdWebSocket>, shared_state: Arc<Mutex<State>>) -> Result<()> {
+async fn run_updater(mut lh: Lighthouse<TokioWebSocket>, shared_state: Arc<Mutex<State>>) -> Result<()> {
     loop {
         // Update the snake and render it
         let frame = {
@@ -136,7 +136,7 @@ async fn run_updater(mut lh: Lighthouse<AsyncStdWebSocket>, shared_state: Arc<Mu
         debug!("Sent frame");
 
         // Wait for a short period of time
-        task::sleep(UPDATE_INTERVAL).await;
+        time::sleep(UPDATE_INTERVAL).await;
     }
 }
 
@@ -166,7 +166,7 @@ async fn run_controller(mut stream: impl Stream<Item = ServerMessage> + Unpin, s
     Ok(())
 }
 
-#[async_std::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() {
     tracing_subscriber::fmt().init();
 
@@ -175,11 +175,14 @@ async fn main() {
     let auth = Authentication::new(username.as_str(), token.as_str());
     let state = Arc::new(Mutex::new(State::new()));
 
-    let mut lh = Lighthouse::connect_with_async_std(auth).await.unwrap();
+    let mut lh = Lighthouse::connect_with_tokio(auth).await.unwrap();
     info!("Connected to the Lighthouse server");
 
     let stream = lh.stream_model().await.unwrap();
 
-    task::spawn(run_updater(lh, state.clone()));
-    task::block_on(run_controller(stream, state)).unwrap();
+    let updater_handle = task::spawn(run_updater(lh, state.clone()));
+    let controller_handle = task::spawn(run_controller(stream, state));
+
+    updater_handle.await.unwrap().unwrap();
+    controller_handle.await.unwrap().unwrap();
 }
