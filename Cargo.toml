@@ -4,7 +4,7 @@ description = "API client for a light installation at the University of Kiel"
 version = "0.6.0"
 edition = "2021"
 categories = ["api-bindings", "asynchronous"]
-repository = "https://github.com/fwcd/lighthouse-client-rust"
+repository = "https://github.com/fwcd/lighthouse-rust"
 license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
