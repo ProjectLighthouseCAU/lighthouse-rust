@@ -1,6 +1,6 @@
 # Project Lighthouse Client for Rust
 
-[![Build](https://github.com/fwcd/lighthouse-rust/actions/workflows/build.yml/badge.svg)](https://github.com/fwcd/lighthouse-rust/actions/workflows/build.yml)
+[![Build](https://github.com/ProjectLighthouseCAU/lighthouse-rust/actions/workflows/build.yml/badge.svg)](https://github.com/ProjectLighthouseCAU/lighthouse-rust/actions/workflows/build.yml)
 
 An asynchronous API client library for a light installation at the University of Kiel, written in Rust. The library is defined in terms of `futures` and can thus be used with any async runtime, though additional convenience functions are provided for `async-std` and `tokio`. The latter can be enabled via the corresponding crate features.
 
