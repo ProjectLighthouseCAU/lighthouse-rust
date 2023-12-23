@@ -3,19 +3,38 @@ name: Deploy to crates.io
 on:
   push:
     tags:
-    - '*'
+    - 'v*'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: crates.io
+      url: ${{ steps.set_url.outputs.env_url }}
+
     steps:
     - uses: actions/checkout@v2
     - name: Set up Rust
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
+    - name: Check version
+      id: version
+      run: |
+        pkg_version="$(grep '^version =' Cargo.toml | sed 's/version = "\(.*\)"/\1/g')"
+        tag_version="$(echo "$GITHUB_REF" | sed -e "s#refs/tags/v##g")"
+        if [ "$pkg_version" != "$tag_version" ]; then
+          echo "Package version '$pkg_version' does not match tag version '$tag_version'!" >&2
+          exit 1
+        fi
+        echo "version=$tag_version" >> "$GITHUB_OUTPUT"
     - name: Publish to crates.io
       uses: actions-rs/cargo@v1
       with:
         command: publish
         args: --token ${{ secrets.CRATES_IO_TOKEN }}
+    - name: Set environment url
+      id: set_url
+      run: |
+        version="${{ steps.version.outputs.version }}"
+        echo "env_url=https://crates.io/crates/lighthouse-client/$version" >> "$GITHUB_OUTPUT"
