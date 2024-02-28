@@ -1,10 +1,10 @@
-use lighthouse_client::{Lighthouse, Authentication, Result, Frame};
+use lighthouse_client::{Authentication, Frame, Lighthouse, Result, LIGHTHOUSE_URL};
 use tracing::info;
 use tokio::time;
 use std::{env, time::Duration};
 
-async fn run(auth: Authentication) -> Result<()> {
-    let mut lh = Lighthouse::connect_with_tokio(auth).await?;
+async fn run(url: &str, auth: Authentication) -> Result<()> {
+    let mut lh = Lighthouse::connect_with_tokio_to(url, auth).await?;
     info!("Connected to the Lighthouse server");
 
     loop {
@@ -19,9 +19,10 @@ async fn run(auth: Authentication) -> Result<()> {
 async fn main() {
     tracing_subscriber::fmt().init();
 
+    let url = env::var("LIGHTHOUSE_URL").unwrap_or_else(|_| LIGHTHOUSE_URL.to_owned());
     let username = env::var("LIGHTHOUSE_USER").unwrap();
     let token = env::var("LIGHTHOUSE_TOKEN").unwrap();
     let auth = Authentication::new(username.as_str(), token.as_str());
 
-    run(auth).await.unwrap();
+    run(&url, auth).await.unwrap();
 }
