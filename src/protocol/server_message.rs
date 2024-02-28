@@ -23,7 +23,7 @@ impl ServerMessage {
         if self.code == 200 {
             Ok(self)
         } else {
-            Err(Error::Server { code: self.code, message: self.response })
+            Err(Error::Server { code: self.code, message: self.response, warnings: self.warnings })
         }
     }
 }

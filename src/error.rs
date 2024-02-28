@@ -9,7 +9,7 @@ pub enum Error {
     Tungstenite(tungstenite::Error),
     Encode(encode::Error),
     Decode(decode::Error),
-    Server { code: i32, message: Option<String> },
+    Server { code: i32, message: Option<String>, warnings: Vec<String> },
     Custom(String),
 }
 
