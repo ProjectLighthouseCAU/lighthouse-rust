@@ -15,9 +15,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Set up Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
+      uses: dtolnay/rust-toolchain@stable
     - name: Check version
       id: version
       run: |
@@ -29,10 +27,7 @@ jobs:
         fi
         echo "version=$tag_version" >> "$GITHUB_OUTPUT"
     - name: Publish to crates.io
-      uses: actions-rs/cargo@v1
-      with:
-        command: publish
-        args: --token ${{ secrets.CRATES_IO_TOKEN }}
+      run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
     - name: Set environment url
       id: set_url
       run: |
