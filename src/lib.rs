@@ -1,4 +1,3 @@
-mod authentication;
 mod connect;
 mod constants;
 mod frame;
@@ -8,7 +7,6 @@ mod utils;
 mod protocol;
 mod spawn;
 
-pub use authentication::*;
 pub use connect::*;
 pub use constants::*;
 pub use frame::*;
