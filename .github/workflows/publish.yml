@@ -6,7 +6,7 @@ on:
     - 'v*'
 
 jobs:
-  deploy:
+  publish:
     runs-on: ubuntu-latest
     environment:
       name: crates.io
@@ -19,15 +19,22 @@ jobs:
     - name: Check version
       id: version
       run: |
-        pkg_version="$(grep '^version =' Cargo.toml | sed 's/version = "\(.*\)"/\1/g')"
-        tag_version="$(echo "$GITHUB_REF" | sed -e "s#refs/tags/v##g")"
-        if [ "$pkg_version" != "$tag_version" ]; then
-          echo "Package version '$pkg_version' does not match tag version '$tag_version'!" >&2
-          exit 1
-        fi
-        echo "version=$tag_version" >> "$GITHUB_OUTPUT"
-    - name: Publish to crates.io
+        for crate in ./lighthouse-*; do
+          echo "==> Checking $crate..."
+          pkg_version="$(grep '^version =' Cargo.toml | sed 's/version = "\(.*\)"/\1/g')"
+          tag_version="$(echo "$GITHUB_REF" | sed -e "s#refs/tags/v##g")"
+          if [ "$pkg_version" != "$tag_version" ]; then
+            echo "Package version '$pkg_version' does not match tag version '$tag_version'!" >&2
+            exit 1
+          fi
+          echo "version=$tag_version" >> "$GITHUB_OUTPUT"
+        done
+    - name: Publish lighthouse-protocol
       run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
+      working-directory: lighthouse-protocol
+    - name: Publish lighthouse-client
+      run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
+      working-directory: lighthouse-client
     - name: Set environment url
       id: set_url
       run: |
