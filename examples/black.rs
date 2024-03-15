@@ -7,12 +7,9 @@ async fn run(auth: Authentication) -> Result<()> {
     let mut lh = Lighthouse::connect_with_tokio(auth).await?;
     info!("Connected to the Lighthouse server");
 
-    loop {
-        lh.put_model(Frame::fill(Color::BLACK)).await?;
-        info!("Sent frame");
+    lh.put_model(Frame::fill(Color::BLACK)).await?;
 
-        time::sleep(Duration::from_secs(1)).await;
-    }
+    Ok(())
 }
 
 #[tokio::main(flavor = "current_thread")]
