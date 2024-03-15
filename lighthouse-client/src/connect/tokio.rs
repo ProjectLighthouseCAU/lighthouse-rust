@@ -1,6 +1,7 @@
 use async_tungstenite::{WebSocketStream, tokio::{ConnectStream, connect_async}};
+use lighthouse_protocol::Authentication;
 
-use crate::{Result, Lighthouse, Authentication, LIGHTHOUSE_URL, TokioSpawner};
+use crate::{Result, Lighthouse, LIGHTHOUSE_URL, TokioSpawner};
 
 pub type TokioWebSocket = WebSocketStream<ConnectStream>;
 

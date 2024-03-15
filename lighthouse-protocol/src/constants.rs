@@ -1,7 +1,5 @@
 use crate::{Rect, Pos, Delta};
 
-/// The URL of the official lighthouse server.
-pub const LIGHTHOUSE_URL: &str = "wss://lighthouse.uni-kiel.de/websocket";
 /// The number of rows of the lighthouse.
 pub const LIGHTHOUSE_ROWS: usize = 14;
 /// The number of columns of the lighthouse.

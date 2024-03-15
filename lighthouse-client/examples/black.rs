@@ -1,7 +1,7 @@
-use lighthouse_client::{Lighthouse, Authentication, Result, Frame, Color};
+use lighthouse_client::{Lighthouse, Result};
+use lighthouse_protocol::{Authentication, Color, Frame};
 use tracing::info;
-use tokio::time;
-use std::{env, time::Duration};
+use std::env;
 
 async fn run(auth: Authentication) -> Result<()> {
     let mut lh = Lighthouse::connect_with_tokio(auth).await?;

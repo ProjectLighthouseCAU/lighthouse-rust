@@ -1,5 +1,6 @@
 use futures::{Stream, lock::Mutex, StreamExt};
-use lighthouse_client::{Authentication, Color, Delta, Frame, Lighthouse, Payload, Pos, Result, ServerMessage, TokioWebSocket, LIGHTHOUSE_RECT, LIGHTHOUSE_SIZE, LIGHTHOUSE_URL};
+use lighthouse_client::{Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL};
+use lighthouse_protocol::{Authentication, Color, Delta, Frame, Payload, Pos, ServerMessage, LIGHTHOUSE_RECT, LIGHTHOUSE_SIZE};
 use tracing::{info, debug};
 use tokio::{task, time};
 use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};

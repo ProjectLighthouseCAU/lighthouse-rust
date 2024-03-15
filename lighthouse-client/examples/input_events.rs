@@ -1,18 +1,22 @@
-use lighthouse_client::{Authentication, Frame, Lighthouse, Result, LIGHTHOUSE_URL};
+use futures::StreamExt;
+use lighthouse_client::{Lighthouse, Result, LIGHTHOUSE_URL};
+use lighthouse_protocol::{Authentication, Payload};
 use tracing::info;
-use tokio::time;
-use std::{env, time::Duration};
+use std::env;
 
 async fn run(url: &str, auth: Authentication) -> Result<()> {
     let mut lh = Lighthouse::connect_with_tokio_to(url, auth).await?;
     info!("Connected to the Lighthouse server");
 
-    loop {
-        lh.put_model(Frame::fill(rand::random())).await?;
-        info!("Sent frame");
-
-        time::sleep(Duration::from_secs(1)).await;
+    // Stream input events
+    let mut stream = lh.stream_model().await?;
+    while let Some(msg) = stream.next().await {
+        if let Payload::InputEvent(event) = msg.payload {
+            info!("Got input event: {:?}", event)
+        }
     }
+
+    Ok(())
 }
 
 #[tokio::main(flavor = "current_thread")]

@@ -1,0 +1,43 @@
+[package]
+name = "lighthouse-client"
+description = "Client SDK for Project Lighthouse"
+version = "1.0.0"
+edition = "2021"
+categories = ["api-bindings", "asynchronous"]
+repository = "https://github.com/ProjectLighthouseCAU/lighthouse-rust"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["tokio"]
+async-std = ["dep:async-std", "async-tungstenite/async-std-runtime", "async-tungstenite/async-native-tls"]
+tokio = ["dep:tokio", "async-tungstenite/tokio-runtime", "async-tungstenite/tokio-native-tls"]
+
+[dependencies]
+async-std = { version = "1.10", features = ["attributes"], optional = true }
+tokio = { version = "1.21", features = ["rt"], optional = true }
+async-tungstenite = { version = "0.25", features = [] }
+futures = "0.3"
+lighthouse-protocol = { version = "1.0.0", path = "../lighthouse-protocol" }
+tracing = "0.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_with = "3.4"
+rmp-serde = "1.0"
+rand = "0.8"
+
+[dev-dependencies]
+tracing-subscriber = { version = "0.3", features = ["env-filter", "std"] }
+tokio = { version = "1.21", features = ["rt", "macros", "time"] }
+
+[[example]]
+name = "disco"
+required-features = ["tokio"]
+
+[[example]]
+name = "input_events"
+required-features = ["tokio"]
+
+[[example]]
+name = "snake"
+required-features = ["tokio"]

@@ -2,8 +2,9 @@ use std::{collections::HashMap, sync::Arc, fmt::Debug};
 
 use async_tungstenite::tungstenite::{Message, self};
 use futures::{prelude::*, channel::mpsc::{Sender, self, Receiver}, stream::{SplitSink, SplitStream}, lock::Mutex};
+use lighthouse_protocol::{Authentication, Frame, ClientMessage, Payload, ServerMessage};
 use tracing::{warn, error, debug, info};
-use crate::{Authentication, Result, Frame, ClientMessage, Payload, Error, ServerMessage, Spawner};
+use crate::{Check, Error, Result, Spawner};
 
 /// A connection to the lighthouse server for sending requests and receiving events.
 pub struct Lighthouse<S> {
