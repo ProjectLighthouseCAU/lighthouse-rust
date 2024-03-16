@@ -1,6 +1,5 @@
 use clap::Parser;
-use lighthouse_client::{Lighthouse, Result, LIGHTHOUSE_URL};
-use lighthouse_protocol::{Authentication, Frame};
+use lighthouse_client::{Lighthouse, Result, LIGHTHOUSE_URL, protocol::{Authentication, Frame}};
 use tracing::info;
 use tokio::time;
 use std::time::Duration;

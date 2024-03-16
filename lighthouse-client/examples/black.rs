@@ -1,6 +1,5 @@
 use clap::Parser;
-use lighthouse_client::{Lighthouse, Result, LIGHTHOUSE_URL};
-use lighthouse_protocol::{Authentication, Color, Frame};
+use lighthouse_client::{Lighthouse, Result, LIGHTHOUSE_URL, protocol::{Authentication, Color, Frame}};
 use tracing::info;
 
 async fn run(url: &str, auth: Authentication) -> Result<()> {

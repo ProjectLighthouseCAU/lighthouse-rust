@@ -1,7 +1,6 @@
 use clap::Parser;
 use futures::StreamExt;
-use lighthouse_client::{Lighthouse, Result, LIGHTHOUSE_URL};
-use lighthouse_protocol::{Authentication, Payload};
+use lighthouse_client::{Lighthouse, Result, LIGHTHOUSE_URL, protocol::{Authentication, Payload}};
 use tracing::info;
 
 async fn run(url: &str, auth: Authentication) -> Result<()> {
