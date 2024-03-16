@@ -23,7 +23,7 @@ jobs:
       run: |
         for crate in ./lighthouse-*; do
           echo "==> Checking $crate..."
-          pkg_version="$(grep '^version =' Cargo.toml | sed 's/version = "\(.*\)"/\1/g')"
+          pkg_version="$(grep '^version =' "$crate/Cargo.toml" | sed 's/version = "\(.*\)"/\1/g')"
           tag_version="$(echo "$GITHUB_REF" | sed -e "s#refs/tags/v##g")"
           if [ "$pkg_version" != "$tag_version" ]; then
             echo "Package version '$pkg_version' does not match tag version '$tag_version'!" >&2
