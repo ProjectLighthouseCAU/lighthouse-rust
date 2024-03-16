@@ -3,7 +3,7 @@ name = "lighthouse-protocol"
 description = "Protocol types for Project Lighthouse"
 version = "1.0.1"
 edition = "2021"
-categories = ["api-bindings", "asynchronous"]
+categories = ["api-bindings"]
 repository = "https://github.com/ProjectLighthouseCAU/lighthouse-rust"
 license = "MIT"
 
