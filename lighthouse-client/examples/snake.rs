@@ -1,9 +1,10 @@
+use clap::Parser;
 use futures::{Stream, lock::Mutex, StreamExt};
 use lighthouse_client::{Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL};
 use lighthouse_protocol::{Authentication, Color, Delta, Frame, Payload, Pos, ServerMessage, LIGHTHOUSE_RECT, LIGHTHOUSE_SIZE};
 use tracing::{info, debug};
 use tokio::{task, time};
-use std::{env, collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
+use std::{collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
 
 const UPDATE_INTERVAL: Duration = Duration::from_millis(200);
 const FRUIT_COLOR: Color = Color::RED;
@@ -167,18 +168,29 @@ async fn run_controller(mut stream: impl Stream<Item = ServerMessage> + Unpin, s
     Ok(())
 }
 
+#[derive(Parser)]
+struct Args {
+    /// The username.
+    #[arg(short, long, env = "LIGHTHOUSE_USER")]
+    username: String,
+    /// The API token.
+    #[arg(short, long, env = "LIGHTHOUSE_TOKEN")]
+    token: String,
+    /// The server URL.
+    #[arg(long, env = "LIGHTHOUSE_URL", default_value = LIGHTHOUSE_URL)]
+    url: String,
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     tracing_subscriber::fmt().init();
     _ = dotenvy::dotenv();
 
-    let url = env::var("LIGHTHOUSE_URL").unwrap_or_else(|_| LIGHTHOUSE_URL.to_owned());
-    let username = env::var("LIGHTHOUSE_USER").unwrap();
-    let token = env::var("LIGHTHOUSE_TOKEN").unwrap();
-    let auth = Authentication::new(username.as_str(), token.as_str());
+    let args = Args::parse();
+    let auth = Authentication::new(&args.username, &args.token);
     let state = Arc::new(Mutex::new(State::new()));
 
-    let mut lh = Lighthouse::connect_with_tokio_to(&url, auth).await.unwrap();
+    let mut lh = Lighthouse::connect_with_tokio_to(&args.url, auth).await.unwrap();
     info!("Connected to the Lighthouse server");
 
     let stream = lh.stream_model().await.unwrap();

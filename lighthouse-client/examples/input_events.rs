@@ -1,8 +1,8 @@
+use clap::Parser;
 use futures::StreamExt;
 use lighthouse_client::{Lighthouse, Result, LIGHTHOUSE_URL};
 use lighthouse_protocol::{Authentication, Payload};
 use tracing::info;
-use std::env;
 
 async fn run(url: &str, auth: Authentication) -> Result<()> {
     let mut lh = Lighthouse::connect_with_tokio_to(url, auth).await?;
@@ -19,15 +19,26 @@ async fn run(url: &str, auth: Authentication) -> Result<()> {
     Ok(())
 }
 
+#[derive(Parser)]
+struct Args {
+    /// The username.
+    #[arg(short, long, env = "LIGHTHOUSE_USER")]
+    username: String,
+    /// The API token.
+    #[arg(short, long, env = "LIGHTHOUSE_TOKEN")]
+    token: String,
+    /// The server URL.
+    #[arg(long, env = "LIGHTHOUSE_URL", default_value = LIGHTHOUSE_URL)]
+    url: String,
+}
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     tracing_subscriber::fmt().init();
     _ = dotenvy::dotenv();
 
-    let url = env::var("LIGHTHOUSE_URL").unwrap_or_else(|_| LIGHTHOUSE_URL.to_owned());
-    let username = env::var("LIGHTHOUSE_USER").unwrap();
-    let token = env::var("LIGHTHOUSE_TOKEN").unwrap();
-    let auth = Authentication::new(username.as_str(), token.as_str());
+    let args = Args::parse();
+    let auth = Authentication::new(&args.username, &args.token);
 
-    run(&url, auth).await.unwrap();
+    run(&args.url, auth).await.unwrap();
 }
