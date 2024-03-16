@@ -1,9 +1,9 @@
-# Project Lighthouse Client for Rust
+# Project Lighthouse SDK for Rust
 
 [![crates.io](https://img.shields.io/crates/v/lighthouse-client)](https://crates.io/crates/lighthouse-client)
 [![Build](https://github.com/ProjectLighthouseCAU/lighthouse-rust/actions/workflows/build.yml/badge.svg)](https://github.com/ProjectLighthouseCAU/lighthouse-rust/actions/workflows/build.yml)
 
-An asynchronous API client library for a light installation at the University of Kiel, written in Rust. The library is defined in terms of `futures` and can thus be used with any async runtime, though additional convenience functions are provided for `async-std` and `tokio`. The latter can be enabled via the corresponding crate features.
+An asynchronous library for interacting with Project Lighthouse in Rust, e.g. to build games or other clients. The library is defined in terms of `futures` and can thus be used with any async runtime, though additional convenience functions are provided for `async-std` and `tokio`. The latter can be enabled via the corresponding crate features.
 
 ## Example Usage
 
