@@ -16,6 +16,8 @@ jobs:
     - uses: actions/checkout@v4
     - name: Set up Rust
       uses: dtolnay/rust-toolchain@stable
+    - name: Build
+      run: cargo build --all
     - name: Check version
       id: version
       run: |
