@@ -170,6 +170,7 @@ async fn run_controller(mut stream: impl Stream<Item = ServerMessage> + Unpin, s
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     tracing_subscriber::fmt().init();
+    _ = dotenvy::dotenv();
 
     let url = env::var("LIGHTHOUSE_URL").unwrap_or_else(|_| LIGHTHOUSE_URL.to_owned());
     let username = env::var("LIGHTHOUSE_USER").unwrap();

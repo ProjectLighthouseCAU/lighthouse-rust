@@ -22,6 +22,7 @@ async fn run(url: &str, auth: Authentication) -> Result<()> {
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     tracing_subscriber::fmt().init();
+    _ = dotenvy::dotenv();
 
     let url = env::var("LIGHTHOUSE_URL").unwrap_or_else(|_| LIGHTHOUSE_URL.to_owned());
     let username = env::var("LIGHTHOUSE_USER").unwrap();

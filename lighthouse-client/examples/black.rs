@@ -15,6 +15,7 @@ async fn run(auth: Authentication) -> Result<()> {
 #[tokio::main(flavor = "current_thread")]
 async fn main() {
     tracing_subscriber::fmt().init();
+    _ = dotenvy::dotenv();
 
     let username = env::var("LIGHTHOUSE_USER").unwrap();
     let token = env::var("LIGHTHOUSE_TOKEN").unwrap();
