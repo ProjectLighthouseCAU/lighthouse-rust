@@ -105,16 +105,40 @@ impl<S> Lighthouse<S>
         self.stream(&["user", username.as_str(), "model"], ()).await
     }
 
-    /// Updates the resource at the given path with the given payload.
+    /// Combines PUT and CREATE. Requires CREATE and WRITE permission.
+    pub async fn post<P>(&mut self, path: &[&str], payload: P) -> Result<ServerMessage<Value>>
+    where
+        P: Serialize {
+        self.perform("POST", path, payload).await
+    }
+
+    /// Updates the resource at the given path with the given payload. Requires WRITE permission.
     pub async fn put<P>(&mut self, path: &[&str], payload: P) -> Result<ServerMessage<()>>
     where
         P: Serialize {
         self.perform("PUT", path, payload).await
     }
 
-    /// Lists the directory tree at the given path.
+    /// Creates a resource at the given path. Requires CREATE permission.
+    pub async fn create(&mut self, path: &[&str]) -> Result<ServerMessage<Value>> {
+        self.perform("CREATE", path, ()).await
+    }
+
+    /// Creates a directory at the given path. Requires CREATE permission.
+    pub async fn mkdir(&mut self, path: &[&str]) -> Result<ServerMessage<Value>> {
+        self.perform("MKDIR", path, ()).await
+    }
+
+    /// Lists the directory tree at the given path. Requires READ permission.
     pub async fn list(&mut self, path: &[&str]) -> Result<ServerMessage<DirectoryTree>> {
         self.perform("LIST", path, ()).await
+    }
+
+    /// Gets the resource at the given path. Requires READ permission.
+    pub async fn get<R>(&mut self, path: &[&str]) -> Result<ServerMessage<R>>
+    where
+        R: for<'de> Deserialize<'de> {
+        self.perform("GET", path, ()).await
     }
 
     /// Performs a single request to the given path with the given payload.
