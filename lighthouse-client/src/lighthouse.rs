@@ -94,7 +94,7 @@ impl<S> Lighthouse<S>
     }
 
     /// Replaces the user's lighthouse model with the given frame.
-    pub async fn put_model(&mut self, frame: Frame) -> Result<()> {
+    pub async fn put_model(&mut self, frame: Frame) -> Result<ServerMessage<()>> {
         let username = self.authentication.username.clone();
         self.put(&["user", username.as_str(), "model"], Model::Frame(frame)).await
     }
@@ -106,14 +106,14 @@ impl<S> Lighthouse<S>
     }
 
     /// Performs a PUT request to the given path with the given payload.
-    pub async fn put<P>(&mut self, path: &[&str], payload: P) -> Result<()>
+    pub async fn put<P>(&mut self, path: &[&str], payload: P) -> Result<ServerMessage<()>>
     where
         P: Serialize {
         self.perform("PUT", path, payload).await
     }
 
     /// Performs a LIST request to the given path with the given payload.
-    pub async fn list<P>(&mut self, path: &[&str], payload: P) -> Result<Value>
+    pub async fn list<P>(&mut self, path: &[&str], payload: P) -> Result<ServerMessage<Value>>
     where
         P: Serialize {
         self.perform("LIST", path, payload).await
@@ -121,14 +121,14 @@ impl<S> Lighthouse<S>
 
     /// Performs a single request to the given path with the given payload.
     #[tracing::instrument(skip(self, payload))]
-    pub async fn perform<P, R>(&mut self, verb: &str, path: &[&str], payload: P) -> Result<R>
+    pub async fn perform<P, R>(&mut self, verb: &str, path: &[&str], payload: P) -> Result<ServerMessage<R>>
     where
         P: Serialize,
         R: for<'de> Deserialize<'de> {
         assert_ne!(verb, "STREAM", "Lighthouse::perform may only be used for one-off requests, use Lighthouse::stream for streaming.");
         let request_id = self.send_request(verb, path, payload).await?;
         let response = self.receive_single(request_id).await?.check()?;
-        Ok(response.payload)
+        Ok(response)
     }
     
     /// Performs a STREAM request to the given path with the given payload.
