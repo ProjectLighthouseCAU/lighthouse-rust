@@ -112,6 +112,13 @@ impl<S> Lighthouse<S>
         self.perform("PUT", path, payload).await
     }
 
+    /// Performs a LIST request to the given path with the given payload.
+    pub async fn list<P>(&mut self, path: &[&str], payload: P) -> Result<Value>
+    where
+        P: Serialize {
+        self.perform("LIST", path, payload).await
+    }
+
     /// Performs a single request to the given path with the given payload.
     #[tracing::instrument(skip(self, payload))]
     pub async fn perform<P, R>(&mut self, verb: &str, path: &[&str], payload: P) -> Result<R>
