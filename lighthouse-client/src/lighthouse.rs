@@ -105,18 +105,16 @@ impl<S> Lighthouse<S>
         self.stream(&["user", username.as_str(), "model"], ()).await
     }
 
-    /// Performs a PUT request to the given path with the given payload.
+    /// Updates the resource at the given path with the given payload.
     pub async fn put<P>(&mut self, path: &[&str], payload: P) -> Result<ServerMessage<()>>
     where
         P: Serialize {
         self.perform("PUT", path, payload).await
     }
 
-    /// Performs a LIST request to the given path with the given payload.
-    pub async fn list<P>(&mut self, path: &[&str], payload: P) -> Result<ServerMessage<DirectoryTree>>
-    where
-        P: Serialize {
-        self.perform("LIST", path, payload).await
+    /// Lists the directory tree at the given path.
+    pub async fn list(&mut self, path: &[&str]) -> Result<ServerMessage<DirectoryTree>> {
+        self.perform("LIST", path, ()).await
     }
 
     /// Performs a single request to the given path with the given payload.
