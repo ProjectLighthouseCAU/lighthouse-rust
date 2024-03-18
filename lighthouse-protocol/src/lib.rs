@@ -15,3 +15,6 @@ pub use input_event::*;
 pub use payload::*;
 pub use server_message::*;
 pub use utils::*;
+
+pub use rmpv::Value;
+pub use rmpv::ext::Error as ValueError;

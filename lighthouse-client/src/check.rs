@@ -6,7 +6,7 @@ pub trait Check: Sized {
     fn check(self) -> Result<Self>;
 }
 
-impl Check for ServerMessage {
+impl<P> Check for ServerMessage<P> {
     fn check(self) -> Result<Self> {
         if self.code == 200 {
             Ok(self)

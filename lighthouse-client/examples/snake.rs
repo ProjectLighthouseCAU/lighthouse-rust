@@ -1,6 +1,7 @@
 use clap::Parser;
 use futures::{Stream, lock::Mutex, StreamExt};
-use lighthouse_client::{Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL, protocol::{Authentication, Color, Delta, Frame, Payload, Pos, ServerMessage, LIGHTHOUSE_RECT, LIGHTHOUSE_SIZE}};
+use lighthouse_client::{Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL, protocol::{Authentication, Color, Delta, Frame, Pos, ServerMessage, LIGHTHOUSE_RECT, LIGHTHOUSE_SIZE}};
+use lighthouse_protocol::Model;
 use tracing::{info, debug};
 use tokio::{task, time};
 use std::{collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
@@ -141,9 +142,9 @@ async fn run_updater(mut lh: Lighthouse<TokioWebSocket>, shared_state: Arc<Mutex
     }
 }
 
-async fn run_controller(mut stream: impl Stream<Item = ServerMessage> + Unpin, shared_state: Arc<Mutex<State>>) -> Result<()> {
+async fn run_controller(mut stream: impl Stream<Item = Result<ServerMessage<Model>>> + Unpin, shared_state: Arc<Mutex<State>>) -> Result<()> {
     while let Some(msg) = stream.next().await {
-        if let Payload::InputEvent(event) = msg.payload {
+        if let Model::InputEvent(event) = msg?.payload {
             if event.is_down {
                 // Map the key code to a direction vector
                 let opt_dir = match event.key {

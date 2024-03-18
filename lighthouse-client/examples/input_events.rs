@@ -1,6 +1,7 @@
 use clap::Parser;
 use futures::StreamExt;
-use lighthouse_client::{Lighthouse, Result, LIGHTHOUSE_URL, protocol::{Authentication, Payload}};
+use lighthouse_client::{Lighthouse, Result, LIGHTHOUSE_URL, protocol::Authentication};
+use lighthouse_protocol::Model;
 use tracing::info;
 
 async fn run(url: &str, auth: Authentication) -> Result<()> {
@@ -10,7 +11,7 @@ async fn run(url: &str, auth: Authentication) -> Result<()> {
     // Stream input events
     let mut stream = lh.stream_model().await?;
     while let Some(msg) = stream.next().await {
-        if let Payload::InputEvent(event) = msg.payload {
+        if let Model::InputEvent(event) = msg?.payload {
             info!("Got input event: {:?}", event)
         }
     }

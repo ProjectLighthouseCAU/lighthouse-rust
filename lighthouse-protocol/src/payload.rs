@@ -1,14 +1,11 @@
 use serde::{Serialize, Deserialize};
-use serde_with::rust::deserialize_ignore_any;
 
 use crate::{Frame, InputEvent};
 
-/// The payload of a message.
+/// The payload of a model message.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(untagged)]
-pub enum Payload {
+pub enum Model {
     Frame(Frame),
     InputEvent(InputEvent),
-    #[serde(deserialize_with = "deserialize_ignore_any")]
-    Empty,
 }

@@ -1,5 +1,5 @@
 use async_tungstenite::tungstenite;
-use rmp_serde::{encode, decode};
+use lighthouse_protocol::ValueError;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -7,8 +7,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug)]
 pub enum Error {
     Tungstenite(tungstenite::Error),
-    Encode(encode::Error),
-    Decode(decode::Error),
+    Encode(rmp_serde::encode::Error),
+    Decode(rmp_serde::decode::Error),
+    Value(ValueError),
     Server { code: i32, message: Option<String>, warnings: Vec<String> },
     Custom(String),
 }
@@ -22,10 +23,14 @@ impl From<tungstenite::Error> for Error {
     fn from(e: tungstenite::Error) -> Self { Self::Tungstenite(e) }
 }
 
-impl From<encode::Error> for Error {
-    fn from(e: encode::Error) -> Self { Self::Encode(e) }
+impl From<rmp_serde::encode::Error> for Error {
+    fn from(e: rmp_serde::encode::Error) -> Self { Self::Encode(e) }
 }
 
-impl From<decode::Error> for Error {
-    fn from(e: decode::Error) -> Self { Self::Decode(e) }
+impl From<rmp_serde::decode::Error> for Error {
+    fn from(e: rmp_serde::decode::Error) -> Self { Self::Decode(e) }
+}
+
+impl From<ValueError> for Error {
+    fn from(e: ValueError) -> Self { Self::Value(e) }
 }

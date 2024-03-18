@@ -1,10 +1,9 @@
 use serde::{Serialize, Deserialize};
-
-use crate::Payload;
+use crate::{Value, ValueError};
 
 /// A message originating from the lighthouse server.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
-pub struct ServerMessage {
+pub struct ServerMessage<P> {
     #[serde(rename = "RNUM")]
     pub code: i32,
     #[serde(rename = "REID")]
@@ -14,5 +13,19 @@ pub struct ServerMessage {
     #[serde(rename = "RESPONSE")]
     pub response: Option<String>,
     #[serde(rename = "PAYL")]
-    pub payload: Payload,
+    pub payload: P,
+}
+
+impl ServerMessage<Value> {
+    pub fn decode_payload<R>(self) -> Result<ServerMessage<R>, ValueError>
+    where
+        R: for<'de> Deserialize<'de> {
+        Ok(ServerMessage {
+            code: self.code,
+            request_id: self.request_id,
+            warnings: self.warnings,
+            response: self.response,
+            payload: rmpv::ext::from_value(self.payload)?,
+        })
+    }
 }
