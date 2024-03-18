@@ -1,9 +1,8 @@
 use clap::Parser;
-use lighthouse_client::{Lighthouse, Result, LIGHTHOUSE_URL, protocol::{Authentication, Color, Frame}};
+use lighthouse_client::{protocol::{Authentication, Color, Frame}, Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL};
 use tracing::info;
 
-async fn run(url: &str, auth: Authentication) -> Result<()> {
-    let mut lh = Lighthouse::connect_with_tokio_to(url, auth).await?;
+async fn run(mut lh: Lighthouse<TokioWebSocket>) -> Result<()> {
     info!("Connected to the Lighthouse server");
 
     lh.put_model(Frame::fill(Color::BLACK)).await?;
@@ -25,12 +24,13 @@ struct Args {
 }
 
 #[tokio::main(flavor = "current_thread")]
-async fn main() {
+async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
     _ = dotenvy::dotenv();
 
     let args = Args::parse();
     let auth = Authentication::new(&args.username, &args.token);
+    let lh = Lighthouse::connect_with_tokio_to(&args.url, auth).await?;
 
-    run(&args.url, auth).await.unwrap();
+    run(lh).await
 }
