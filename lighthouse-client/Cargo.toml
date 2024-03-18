@@ -31,15 +31,3 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "std"] }
 tokio = { version = "1.21", features = ["rt", "macros", "time"] }
 clap = { version = "4.5", features = ["derive", "env"] }
 dotenvy = "0.15"
-
-[[example]]
-name = "disco"
-required-features = ["tokio"]
-
-[[example]]
-name = "input_events"
-required-features = ["tokio"]
-
-[[example]]
-name = "snake"
-required-features = ["tokio"]
