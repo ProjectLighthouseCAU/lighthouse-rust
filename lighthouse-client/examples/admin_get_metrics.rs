@@ -7,7 +7,7 @@ async fn run(mut lh: Lighthouse<TokioWebSocket>) -> Result<()> {
 
     let metrics = lh.get_laser_metrics().await?.payload;
     for room in metrics.rooms {
-        info!("{:?}", room);
+        info!("{:#?}", room);
     }
 
     Ok(())
