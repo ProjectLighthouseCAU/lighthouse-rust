@@ -127,7 +127,7 @@ impl<S> Lighthouse<S>
         R: for<'de> Deserialize<'de> {
         assert_ne!(verb, "STREAM", "Lighthouse::perform may only be used for one-off requests, use Lighthouse::stream for streaming.");
         let request_id = self.send_request(verb, path, payload).await?;
-        let response = self.receive_single(request_id).await?.check()?;
+        let response = self.receive_single(request_id).await?.check()?.decode_payload()?;
         Ok(response)
     }
     
