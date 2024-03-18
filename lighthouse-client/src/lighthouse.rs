@@ -129,6 +129,11 @@ impl<S> Lighthouse<S>
         self.perform(&Verb::Create, path, ()).await
     }
 
+    /// Deletes a resource at the given path. Requires DELETE permission.
+    pub async fn delete(&mut self, path: &[&str]) -> Result<ServerMessage<Value>> {
+        self.perform(&Verb::Delete, path, ()).await
+    }
+
     /// Creates a directory at the given path. Requires CREATE permission.
     pub async fn mkdir(&mut self, path: &[&str]) -> Result<ServerMessage<Value>> {
         self.perform(&Verb::Mkdir, path, ()).await
