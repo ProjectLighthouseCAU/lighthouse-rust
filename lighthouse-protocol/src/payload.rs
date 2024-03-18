@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt};
 
 use serde::{Serialize, Deserialize};
 
@@ -17,4 +17,24 @@ pub enum Model {
 #[serde(transparent)]
 pub struct DirectoryTree {
     pub entries: HashMap<String, Option<DirectoryTree>>,
+}
+
+impl fmt::Display for DirectoryTree {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{{")?;
+        let count = self.entries.len();
+        for (i, (key, value)) in self.entries.iter().enumerate() {
+            write!(f, "\"{}\": ", key)?;
+            if let Some(value) = value {
+                write!(f, "{}", value)?;
+            } else {
+                write!(f, "None")?;
+            }
+            if i < count - 1 {
+                write!(f, ", ")?;
+            }
+        }
+        write!(f, "}}")?;
+        Ok(())
+    }
 }

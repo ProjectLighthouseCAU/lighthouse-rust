@@ -7,7 +7,7 @@ async fn run(url: &str, auth: Authentication) -> Result<()> {
     info!("Connected to the Lighthouse server");
 
     let tree = lh.list(&[], ()).await?.payload;
-    info!("Got {:#?}", tree);
+    info!("Got {}", tree);
 
     Ok(())
 }
