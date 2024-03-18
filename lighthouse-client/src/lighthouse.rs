@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc, fmt::Debug};
 
 use async_tungstenite::tungstenite::{Message, self};
 use futures::{prelude::*, channel::mpsc::{Sender, self}, stream::{SplitSink, SplitStream}, lock::Mutex};
-use lighthouse_protocol::{Authentication, ClientMessage, Frame, Model, ServerMessage, Value};
+use lighthouse_protocol::{Authentication, ClientMessage, DirectoryTree, Frame, Model, ServerMessage, Value};
 use serde::{Deserialize, Serialize};
 use tracing::{warn, error, debug, info};
 use crate::{Check, Error, Result, Spawner};
@@ -113,7 +113,7 @@ impl<S> Lighthouse<S>
     }
 
     /// Performs a LIST request to the given path with the given payload.
-    pub async fn list<P>(&mut self, path: &[&str], payload: P) -> Result<ServerMessage<Value>>
+    pub async fn list<P>(&mut self, path: &[&str], payload: P) -> Result<ServerMessage<DirectoryTree>>
     where
         P: Serialize {
         self.perform("LIST", path, payload).await

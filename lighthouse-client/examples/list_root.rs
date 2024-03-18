@@ -6,8 +6,8 @@ async fn run(url: &str, auth: Authentication) -> Result<()> {
     let mut lh = Lighthouse::connect_with_tokio_to(url, auth).await?;
     info!("Connected to the Lighthouse server");
 
-    let value = lh.list(&[], ()).await?;
-    info!("Got {:?}", value);
+    let tree = lh.list(&[], ()).await?.payload;
+    info!("Got {:#?}", tree);
 
     Ok(())
 }
