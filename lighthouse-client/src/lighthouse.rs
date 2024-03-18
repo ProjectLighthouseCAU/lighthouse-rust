@@ -230,4 +230,9 @@ impl<S> Lighthouse<S>
     async fn send_raw(&mut self, bytes: impl Into<Vec<u8>> + Debug) -> Result<()> {
         Ok(self.ws_sink.send(Message::Binary(bytes.into())).await?)
     }
+
+    /// Fetches the credentials used to authenticate with the lighthouse.
+    pub fn authentication(&self) -> &Authentication {
+        &self.authentication
+    }
 }
