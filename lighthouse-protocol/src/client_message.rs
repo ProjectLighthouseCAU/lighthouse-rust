@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use serde::{Serialize, Deserialize};
 
-use crate::{Authentication, Value, ValueError};
+use crate::{Authentication, Value, ValueError, Verb};
 
 /// A message originating from the lighthouse client.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
@@ -10,7 +10,7 @@ pub struct ClientMessage<P> {
     #[serde(rename = "REID")]
     pub request_id: i32,
     #[serde(rename = "VERB")]
-    pub verb: String,
+    pub verb: Verb,
     #[serde(rename = "PATH")]
     pub path: Vec<String>,
     #[serde(rename = "META")]

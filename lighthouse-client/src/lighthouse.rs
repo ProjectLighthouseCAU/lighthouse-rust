@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc, fmt::Debug};
 
 use async_tungstenite::tungstenite::{Message, self};
 use futures::{prelude::*, channel::mpsc::{Sender, self}, stream::{SplitSink, SplitStream}, lock::Mutex};
-use lighthouse_protocol::{Authentication, ClientMessage, DirectoryTree, Frame, LaserMetrics, Model, ServerMessage, Value};
+use lighthouse_protocol::{Authentication, ClientMessage, DirectoryTree, Frame, LaserMetrics, Model, ServerMessage, Value, Verb};
 use serde::{Deserialize, Serialize};
 use tracing::{warn, error, debug, info};
 use crate::{Check, Error, Result, Spawner};
@@ -114,45 +114,45 @@ impl<S> Lighthouse<S>
     pub async fn post<P>(&mut self, path: &[&str], payload: P) -> Result<ServerMessage<Value>>
     where
         P: Serialize {
-        self.perform("POST", path, payload).await
+        self.perform(&Verb::Post, path, payload).await
     }
 
     /// Updates the resource at the given path with the given payload. Requires WRITE permission.
     pub async fn put<P>(&mut self, path: &[&str], payload: P) -> Result<ServerMessage<()>>
     where
         P: Serialize {
-        self.perform("PUT", path, payload).await
+        self.perform(&Verb::Put, path, payload).await
     }
 
     /// Creates a resource at the given path. Requires CREATE permission.
     pub async fn create(&mut self, path: &[&str]) -> Result<ServerMessage<Value>> {
-        self.perform("CREATE", path, ()).await
+        self.perform(&Verb::Create, path, ()).await
     }
 
     /// Creates a directory at the given path. Requires CREATE permission.
     pub async fn mkdir(&mut self, path: &[&str]) -> Result<ServerMessage<Value>> {
-        self.perform("MKDIR", path, ()).await
+        self.perform(&Verb::Mkdir, path, ()).await
     }
 
     /// Lists the directory tree at the given path. Requires READ permission.
     pub async fn list(&mut self, path: &[&str]) -> Result<ServerMessage<DirectoryTree>> {
-        self.perform("LIST", path, ()).await
+        self.perform(&Verb::List, path, ()).await
     }
 
     /// Gets the resource at the given path. Requires READ permission.
     pub async fn get<R>(&mut self, path: &[&str]) -> Result<ServerMessage<R>>
     where
         R: for<'de> Deserialize<'de> {
-        self.perform("GET", path, ()).await
+        self.perform(&Verb::Get, path, ()).await
     }
 
     /// Performs a single request to the given path with the given payload.
     #[tracing::instrument(skip(self, payload))]
-    pub async fn perform<P, R>(&mut self, verb: &str, path: &[&str], payload: P) -> Result<ServerMessage<R>>
+    pub async fn perform<P, R>(&mut self, verb: &Verb, path: &[&str], payload: P) -> Result<ServerMessage<R>>
     where
         P: Serialize,
         R: for<'de> Deserialize<'de> {
-        assert_ne!(verb, "STREAM", "Lighthouse::perform may only be used for one-off requests, use Lighthouse::stream for streaming.");
+        assert_ne!(verb, &Verb::Stream, "Lighthouse::perform may only be used for one-off requests, use Lighthouse::stream for streaming.");
         let request_id = self.send_request(verb, path, payload).await?;
         let response = self.receive_single(request_id).await?.check()?.decode_payload()?;
         Ok(response)
@@ -164,13 +164,13 @@ impl<S> Lighthouse<S>
     where
         P: Serialize,
         R: for<'de> Deserialize<'de> {
-        let request_id = self.send_request("STREAM", path, payload).await?;
+        let request_id = self.send_request(&Verb::Stream, path, payload).await?;
         let stream = self.receive_streaming(request_id).await?;
         Ok(stream)
     }
 
     /// Sends a request to the given path with the given payload.
-    async fn send_request<P>(&mut self, verb: &str, path: &[&str], payload: P) -> Result<i32>
+    async fn send_request<P>(&mut self, verb: &Verb, path: &[&str], payload: P) -> Result<i32>
     where
         P: Serialize {
         let path = path.into_iter().map(|s| s.to_string()).collect();
@@ -182,7 +182,7 @@ impl<S> Lighthouse<S>
             authentication: self.authentication.clone(),
             path,
             meta: HashMap::new(),
-            verb: verb.to_owned(),
+            verb: verb.clone(),
             payload
         }).await?;
         Ok(request_id)
