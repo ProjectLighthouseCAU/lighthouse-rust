@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc, fmt::Debug};
 
 use async_tungstenite::tungstenite::{Message, self};
 use futures::{prelude::*, channel::mpsc::{Sender, self}, stream::{SplitSink, SplitStream}, lock::Mutex};
-use lighthouse_protocol::{Authentication, ClientMessage, DirectoryTree, Frame, Model, ServerMessage, Value};
+use lighthouse_protocol::{Authentication, ClientMessage, DirectoryTree, Frame, LaserMetrics, Model, ServerMessage, Value};
 use serde::{Deserialize, Serialize};
 use tracing::{warn, error, debug, info};
 use crate::{Check, Error, Result, Spawner};
@@ -103,6 +103,11 @@ impl<S> Lighthouse<S>
     pub async fn stream_model(&mut self) -> Result<impl Stream<Item = Result<ServerMessage<Model>>>> {
         let username = self.authentication.username.clone();
         self.stream(&["user", username.as_str(), "model"], ()).await
+    }
+
+    /// Fetches lamp server metrics.
+    pub async fn get_laser_metrics(&mut self) -> Result<ServerMessage<LaserMetrics>> {
+        self.get(&["metrics", "laser"]).await
     }
 
     /// Combines PUT and CREATE. Requires CREATE and WRITE permission.

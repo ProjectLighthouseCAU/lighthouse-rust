@@ -1,13 +1,14 @@
 use clap::Parser;
 use lighthouse_client::{protocol::Authentication, Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL};
-use lighthouse_protocol::Value;
 use tracing::info;
 
 async fn run(mut lh: Lighthouse<TokioWebSocket>) -> Result<()> {
     info!("Connected to the Lighthouse server");
 
-    let metrics: Value = lh.get(&["metrics", "laser"]).await?.payload;
-    info!("Got {}", metrics);
+    let metrics = lh.get_laser_metrics().await?.payload;
+    for room in metrics.rooms {
+        info!("{:?}", room);
+    }
 
     Ok(())
 }

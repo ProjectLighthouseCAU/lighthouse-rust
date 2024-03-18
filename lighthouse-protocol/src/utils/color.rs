@@ -1,10 +1,14 @@
 use rand::{prelude::Distribution, distributions::Standard};
+use serde::{Deserialize, Serialize};
 
 /// An RGB color.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Color {
+    #[serde(rename = "R")]
     pub red: u8,
+    #[serde(rename = "G")]
     pub green: u8,
+    #[serde(rename = "B")]
     pub blue: u8,
 }
 
