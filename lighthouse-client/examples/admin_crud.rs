@@ -1,22 +1,50 @@
 use clap::Parser;
-use lighthouse_client::{protocol::Authentication, Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL};
-use tracing::info;
+use lighthouse_client::{protocol::Authentication, Error, Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL};
+use tracing::{info, info_span, Instrument};
 
 async fn run(mut lh: Lighthouse<TokioWebSocket>) -> Result<()> {
     info!("Connected to the Lighthouse server");
 
-    info!("Creating test directory...");
-    _ = lh.mkdir(&["test"]).await;
-    info!("Tree: {}", lh.list(&["test"]).await?.payload);
+    async {
+        _ = lh.delete(&["test"]).await;
+        _ = lh.mkdir(&["test"]).await; // TODO: No longer ignore once Beacon no longer 400s here
+        info!(tree = %lh.list(&["test"]).await?.payload);
+        Ok::<_, Error>(())
+    }.instrument(info_span!("Recreating test directory")).await?;
 
-    info!("Posting to test directory...");
-    lh.post(&["test", "a", "b", "c"], "Hello world!".to_string()).await?.payload;
-    info!("Tree: {}", lh.list(&["test"]).await?.payload);
+    async {
+        lh.post(&["test", "a", "nested"], "Hello world!".to_string()).await?;
+        info!(tree = %lh.list(&["test"]).await?.payload);
+        Ok::<_, Error>(())
+    }.instrument(info_span!("Posting to test directory")).await?;
+    
+    async {
+        _ = lh.create(&["test", "b"]).await; // TODO: No longer ignore once Beacon no longer 418s here
+        lh.link(&["test", "a", "nested"], &["test", "b"]).await?;
+        lh.put(&["test", "a", "nested"], "Another string".to_string()).await?;
+        info!(tree = %lh.list(&["test"]).await?.payload);
+        Ok::<_, Error>(())
+    }.instrument(info_span!("Linking to sibling resource")).await?;
 
-    info!("Getting test resource...");
-    let result: String = lh.get(&["test", "a", "b", "c"]).await?.payload;
-    info!("Result: {:?}", result);
-    info!("Tree: {}", lh.list(&["test"]).await?.payload);
+    async {
+        let result: String = lh.get(&["test", "b"]).await?.payload;
+        info!(result = result);
+        info!(tree = %lh.list(&["test"]).await?.payload);
+        Ok::<_, Error>(())
+    }.instrument(info_span!("Getting linked resource")).await?;
+
+    async {
+        lh.link(&["test", "a", "nested"], &["test", "b"]).await?;
+        info!(tree = %lh.list(&["test"]).await?.payload);
+        Ok::<_, Error>(())
+    }.instrument(info_span!("Unlinking sibling resource")).await?;
+
+    async {
+        let result: String = lh.get(&["test", "b"]).await?.payload;
+        info!(result = result);
+        info!(tree = %lh.list(&["test"]).await?.payload);
+        Ok::<_, Error>(())
+    }.instrument(info_span!("Getting unlinked resource")).await?;
 
     Ok(())
 }
