@@ -6,18 +6,17 @@ async fn run(mut lh: Lighthouse<TokioWebSocket>) -> Result<()> {
     info!("Connected to the Lighthouse server");
 
     info!("Creating test directory...");
-    lh.mkdir(&["test"]).await?;
-    info!("Tree: {}", lh.list(&[]).await?.payload);
+    _ = lh.mkdir(&["test"]).await;
+    info!("Tree: {}", lh.list(&["test"]).await?.payload);
 
     info!("Posting to test directory...");
-    let result = lh.post(&["test", "a", "b", "c"], "Hello world!".to_string()).await?.payload;
-    info!("Result: {:?}", result);
-    info!("Tree: {}", lh.list(&[]).await?.payload);
+    lh.post(&["test", "a", "b", "c"], "Hello world!".to_string()).await?.payload;
+    info!("Tree: {}", lh.list(&["test"]).await?.payload);
 
     info!("Getting test resource...");
     let result: String = lh.get(&["test", "a", "b", "c"]).await?.payload;
     info!("Result: {:?}", result);
-    info!("Tree: {}", lh.list(&[]).await?.payload);
+    info!("Tree: {}", lh.list(&["test"]).await?.payload);
 
     Ok(())
 }
