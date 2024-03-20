@@ -111,7 +111,7 @@ impl<S> Lighthouse<S>
     }
 
     /// Combines PUT and CREATE. Requires CREATE and WRITE permission.
-    pub async fn post<P>(&mut self, path: &[&str], payload: P) -> Result<ServerMessage<Value>>
+    pub async fn post<P>(&mut self, path: &[&str], payload: P) -> Result<ServerMessage<()>>
     where
         P: Serialize {
         self.perform(&Verb::Post, path, payload).await
@@ -125,17 +125,17 @@ impl<S> Lighthouse<S>
     }
 
     /// Creates a resource at the given path. Requires CREATE permission.
-    pub async fn create(&mut self, path: &[&str]) -> Result<ServerMessage<Value>> {
+    pub async fn create(&mut self, path: &[&str]) -> Result<ServerMessage<()>> {
         self.perform(&Verb::Create, path, ()).await
     }
 
     /// Deletes a resource at the given path. Requires DELETE permission.
-    pub async fn delete(&mut self, path: &[&str]) -> Result<ServerMessage<Value>> {
+    pub async fn delete(&mut self, path: &[&str]) -> Result<ServerMessage<()>> {
         self.perform(&Verb::Delete, path, ()).await
     }
 
     /// Creates a directory at the given path. Requires CREATE permission.
-    pub async fn mkdir(&mut self, path: &[&str]) -> Result<ServerMessage<Value>> {
+    pub async fn mkdir(&mut self, path: &[&str]) -> Result<ServerMessage<()>> {
         self.perform(&Verb::Mkdir, path, ()).await
     }
 
