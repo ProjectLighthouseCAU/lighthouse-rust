@@ -151,6 +151,20 @@ impl<S> Lighthouse<S>
         self.perform(&Verb::Get, path, ()).await
     }
 
+    /// Links the given source to the given destination path.
+    pub async fn link<R>(&mut self, src_path: &[&str], dest_path: &[&str]) -> Result<ServerMessage<()>>
+    where
+        R: for<'de> Deserialize<'de> {
+        self.perform(&Verb::Link, dest_path, src_path).await
+    }
+
+    /// Unlinks the given source from the given destination path.
+    pub async fn unlink<R>(&mut self, src_path: &[&str], dest_path: &[&str]) -> Result<ServerMessage<()>>
+    where
+        R: for<'de> Deserialize<'de> {
+        self.perform(&Verb::Unlink, dest_path, src_path).await
+    }
+
     /// Performs a single request to the given path with the given payload.
     #[tracing::instrument(skip(self, payload))]
     pub async fn perform<P, R>(&mut self, verb: &Verb, path: &[&str], payload: P) -> Result<ServerMessage<R>>
