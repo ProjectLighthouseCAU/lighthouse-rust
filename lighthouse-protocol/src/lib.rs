@@ -20,3 +20,4 @@ pub use verb::*;
 
 pub use rmpv::Value;
 pub use rmpv::ext::Error as ValueError;
+pub use rmpv::ext::{from_value, to_value};
