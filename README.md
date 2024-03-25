@@ -24,8 +24,7 @@ You can now run an example with
 cargo run --example disco
 ```
 
-For a more complex example, try
+For more involved examples, check out
 
-```bash
-cargo run --example snake
-```
+- https://github.com/fwcd/lisnake
+- https://github.com/fwcd/litris
