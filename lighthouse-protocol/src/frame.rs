@@ -5,7 +5,7 @@ use crate::{Color, LIGHTHOUSE_ROWS, LIGHTHOUSE_COLS, Pos, LIGHTHOUSE_RECT, LIGHT
 
 /// An 'image' to be displayed on the lighthouse.
 /// The pixels are stored in row-major order.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Frame {
     pixels: [Color; LIGHTHOUSE_SIZE],
 }
