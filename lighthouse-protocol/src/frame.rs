@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize, de, Serializer, Deserializer};
-use std::{fmt, ops::{Index, IndexMut}};
+use std::{array, fmt, ops::{Index, IndexMut}};
 
-use crate::{Color, LIGHTHOUSE_ROWS, LIGHTHOUSE_COLS, Pos, LIGHTHOUSE_RECT, LIGHTHOUSE_SIZE};
+use crate::{Color, Pos, LIGHTHOUSE_BYTES, LIGHTHOUSE_COLS, LIGHTHOUSE_RECT, LIGHTHOUSE_ROWS, LIGHTHOUSE_SIZE};
 
 /// An 'image' to be displayed on the lighthouse.
 /// The pixels are stored in row-major order.
@@ -65,6 +65,45 @@ impl IndexMut<Pos> for Frame {
     }
 }
 
+impl From<[Color; LIGHTHOUSE_SIZE]> for Frame {
+    fn from(pixels: [Color; LIGHTHOUSE_SIZE]) -> Self {
+        Self::new(pixels)
+    }
+}
+
+impl From<[u8; LIGHTHOUSE_BYTES]> for Frame {
+    fn from(bytes: [u8; LIGHTHOUSE_BYTES]) -> Self {
+        Self::new(array::from_fn(|pixel_index| {
+            let offset = pixel_index * 3;
+            Color::from([offset, offset + 1, offset + 2].map(|i| bytes[i]))
+        }))
+    }
+}
+
+impl From<Frame> for [Color; LIGHTHOUSE_SIZE] {
+    fn from(frame: Frame) -> Self {
+        frame.pixels
+    }
+}
+
+impl From<Frame> for Vec<u8> {
+    fn from(frame: Frame) -> Self {
+        frame.pixels.iter()
+            .flat_map(|c| [c.red, c.green, c.blue].into_iter())
+            .collect()
+    }
+}
+
+impl From<Frame> for [u8; LIGHTHOUSE_BYTES] {
+    fn from(frame: Frame) -> Self {
+        // TODO: Figure out if we could do this without dynamic allocation
+        // Sadly, there is no flat_map for arrays, most likely due to the
+        // limitations of const generics, which do not support arithemtic (e.g.
+        // multiplication). Maybe one day, once we have `generic_const_exprs`...
+        Vec::from(frame).try_into().unwrap()
+    }
+}
+
 impl Serialize for Frame {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer {
@@ -93,21 +132,10 @@ impl<'de> de::Visitor<'de> for FrameBytesVisitor {
 
     fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E>
         where E: de::Error {
-        if v.len() % 3 == 0 {
-            Ok(Frame {
-                pixels: v
-                    .chunks(3)
-                    .map(|c| match c {
-                        &[r, g, b] => Color::new(r, g, b),
-                        _ => unreachable!(),
-                    })
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .map(Ok)
-                    .unwrap_or_else(|_| Err(E::custom("Could not decode into pixels array".to_owned())))?
-            })
+        if let Ok(bytes) = <[u8; LIGHTHOUSE_BYTES]>::try_from(v) {
+            Ok(Frame::from(bytes))
         } else {
-            Err(E::custom(format!("{} (length of byte array) is not a multiple of 3", v.len())))
+            Err(E::custom(format!("{} (length of byte array) is not {}", v.len(), LIGHTHOUSE_BYTES)))
         }
     }
 }

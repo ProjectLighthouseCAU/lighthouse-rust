@@ -28,6 +28,18 @@ impl Color {
     }
 }
 
+impl From<[u8; 3]> for Color {
+    fn from([red, green, blue]: [u8; 3]) -> Self {
+        Self { red, green, blue }
+    }
+}
+
+impl From<Color> for [u8; 3] {
+    fn from(color: Color) -> [u8; 3] {
+        [color.red, color.green, color.blue]
+    }
+}
+
 impl Distribution<Color> for Standard {
     fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> Color {
         Color::new(rng.gen(), rng.gen(), rng.gen())
