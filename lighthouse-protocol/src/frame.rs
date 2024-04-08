@@ -139,3 +139,20 @@ impl<'de> de::Visitor<'de> for FrameBytesVisitor {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{Color, Frame, LIGHTHOUSE_BYTES};
+
+    #[test]
+    fn from_array() {
+        assert_eq!(Frame::from([0u8; LIGHTHOUSE_BYTES]), Frame::empty());
+        assert_eq!(Frame::from([255u8; LIGHTHOUSE_BYTES]), Frame::fill(Color::WHITE));
+    }
+
+    #[test]
+    fn to_array() {
+        assert_eq!(<[u8; LIGHTHOUSE_BYTES]>::from(Frame::empty()), [0u8; LIGHTHOUSE_BYTES]);
+        assert_eq!(<[u8; LIGHTHOUSE_BYTES]>::from(Frame::fill(Color::WHITE)), [255u8; LIGHTHOUSE_BYTES]);
+    }
+}
