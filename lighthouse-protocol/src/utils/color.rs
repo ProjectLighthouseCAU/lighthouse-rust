@@ -45,3 +45,26 @@ impl Distribution<Color> for Standard {
         Color::new(rng.gen(), rng.gen(), rng.gen())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::Color;
+
+    #[test]
+    fn to_array() {
+        assert_eq!(<[u8; 3]>::from(Color::BLACK), [0, 0, 0]);
+        assert_eq!(<[u8; 3]>::from(Color::RED), [0xFF, 0, 0]);
+        assert_eq!(<[u8; 3]>::from(Color::GREEN), [0, 0xFF, 0]);
+        assert_eq!(<[u8; 3]>::from(Color::BLUE), [0, 0, 0xFF]);
+        assert_eq!(<[u8; 3]>::from(Color::new(1, 2, 3)), [1, 2, 3]);
+    }
+
+    #[test]
+    fn from_array() {
+        assert_eq!(Color::from([0, 0, 0]), Color::BLACK);
+        assert_eq!(Color::from([0xFF, 0, 0]), Color::RED);
+        assert_eq!(Color::from([0, 0xFF, 0]), Color::GREEN);
+        assert_eq!(Color::from([0, 0, 0xFF]), Color::BLUE);
+        assert_eq!(Color::from([1, 2, 3]), Color::new(1, 2, 3));
+    }
+}
