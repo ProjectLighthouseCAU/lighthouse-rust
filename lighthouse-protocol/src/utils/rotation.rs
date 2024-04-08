@@ -88,7 +88,7 @@ mod tests {
     use super::Rotation;
 
     #[test]
-    fn test_rotation() {
+    fn rotation() {
         assert_eq!(Rotation::IDENTITY * Delta::new(4, -3), Delta::new(4, -3));
         assert_eq!(Rotation::CW_90 * Delta::new(2, 3), Delta::new(-3, 2));
         assert_eq!(Rotation::CW_90 * Delta::RIGHT, Delta::DOWN);
@@ -98,7 +98,7 @@ mod tests {
     }
 
     #[test]
-    fn test_matmul() {
+    fn matmul() {
         assert_eq!(Rotation::IDENTITY * Rotation::IDENTITY, Rotation::IDENTITY);
         assert_eq!(Rotation::IDENTITY * Rotation::CW_90, Rotation::CW_90);
         assert_eq!(Rotation::CW_90 * Rotation::CW_90, Rotation::CW_180);
