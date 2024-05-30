@@ -11,7 +11,7 @@ pub use connect::*;
 pub use constants::*;
 pub use error::*;
 pub use lighthouse::*;
-pub use utils::*;
+pub(crate) use utils::*;
 pub use spawn::*;
 
 pub use lighthouse_protocol as protocol;
