@@ -5,3 +5,8 @@ members = [
 ]
 default-members = ["lighthouse-client"]
 resolver = "2"
+
+[workspace.package]
+version = "3.2.1"
+edition = "2021"
+license = "MIT"
