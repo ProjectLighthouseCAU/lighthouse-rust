@@ -12,20 +12,20 @@ pub struct Lighthouse<S> {
     /// The sink-part of the WebSocket connection.
     ws_sink: SplitSink<S, Message>,
     /// The response/event slots, keyed by request id.
-    slots: Arc<Mutex<HashMap<i32, ResponseSlot>>>,
+    slots: Arc<Mutex<HashMap<i32, Slot<ServerMessage<Value>>>>>,
     /// The credentials used to authenticate with the lighthouse.
     authentication: Authentication,
     /// The next request id. Incremented on every request.
     request_id: i32,
 }
 
-enum ResponseSlot {
-    /// Indicates that responses were received before the request task queried it.
+enum Slot<M> {
+    /// Indicates that messages were received before the request task queried it.
     /// Generally set by the receive loop task.
-    EarlyResponses(Vec<ServerMessage<Value>>),
-    /// Indicates that responses were not received before the request task queried it.
+    EarlyMessages(Vec<M>),
+    /// Indicates that messages were not received before the request task queried it.
     /// Generally set by the request task.
-    WaitForResponses(Sender<ServerMessage<Value>>),
+    WaitForMessages(Sender<M>),
 }
 
 impl<S> Lighthouse<S>
@@ -51,7 +51,7 @@ impl<S> Lighthouse<S>
 
     /// Runs a loop that continuously receives events.
     #[tracing::instrument(skip(ws_stream, slots))]
-    async fn run_receive_loop(mut ws_stream: SplitStream<S>, slots: Arc<Mutex<HashMap<i32, ResponseSlot>>>) {
+    async fn run_receive_loop(mut ws_stream: SplitStream<S>, slots: Arc<Mutex<HashMap<i32, Slot<ServerMessage<Value>>>>>) {
         loop {
             match Self::receive_message_from(&mut ws_stream).await {
                 Ok(msg) => {
@@ -59,10 +59,8 @@ impl<S> Lighthouse<S>
                     if let Some(request_id) = msg.request_id {
                         if let Some(slot) = slots.get_mut(&request_id) {
                             match slot {
-                                ResponseSlot::EarlyResponses(responses) => {
-                                    responses.push(msg);
-                                },
-                                ResponseSlot::WaitForResponses(tx) => {
+                                Slot::EarlyMessages(msgs) => msgs.push(msg),
+                                Slot::WaitForMessages(tx) => {
                                     if let Err(e) = tx.send(msg).await {
                                         if e.is_disconnected() {
                                             info!("Receiver for request id {} disconnected, removing the sender...", request_id);
@@ -74,7 +72,7 @@ impl<S> Lighthouse<S>
                                 }
                             }
                         } else {
-                            slots.insert(request_id, ResponseSlot::EarlyResponses(vec![msg]));
+                            slots.insert(request_id, Slot::EarlyMessages(vec![msg]));
                         }
                     } else {
                         warn!("Got message without request id from server: {:?}", msg);
@@ -252,18 +250,18 @@ impl<S> Lighthouse<S>
             let capacity = 4;
             let (tx, rx) = {
                 let mut slots = self.slots.lock().await;
-                if let Some(ResponseSlot::EarlyResponses(responses)) = slots.get_mut(&request_id) {
-                    let (mut tx, rx) = mpsc::channel(capacity.min(responses.len()));
-                    for response in responses.drain(..) {
-                        tx.feed(response).await.map_err(|e| Error::Custom(format!("Could not feed tx with early response: {}", e)))?;
+                if let Some(Slot::EarlyMessages(msgs)) = slots.get_mut(&request_id) {
+                    let (mut tx, rx) = mpsc::channel(capacity.min(msgs.len()));
+                    for msg in msgs.drain(..) {
+                        tx.feed(msg).await.map_err(|e| Error::Custom(format!("Could not feed tx with early message: {}", e)))?;
                     } 
-                    tx.flush().await.map_err(|e| Error::Custom(format!("Could not feed tx with early response: {}", e)))?;
+                    tx.flush().await.map_err(|e| Error::Custom(format!("Could not flush tx with early messages: {}", e)))?;
                     (tx, rx)
                 } else {
                     mpsc::channel(capacity)
                 }
             };
-            self.slots.lock().await.insert(request_id, ResponseSlot::WaitForResponses(tx));
+            self.slots.lock().await.insert(request_id, Slot::WaitForMessages(tx));
             rx
         };
         Ok(rx.map(|s| Ok(s.decode_payload()?)).guard({
