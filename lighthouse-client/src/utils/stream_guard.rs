@@ -3,6 +3,7 @@ use std::{pin::Pin, task::{Context, Poll}};
 use futures::Stream;
 use pin_project::{pin_project, pinned_drop};
 
+/// A stream wrapper that automatically runs a closure when dropped.
 #[pin_project(PinnedDrop)]
 pub struct StreamGuard<S, F> where S: Stream + Unpin, F: FnOnce() {
     #[pin]
