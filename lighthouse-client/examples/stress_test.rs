@@ -45,7 +45,7 @@ struct Args {
     delay_ms: Option<u64>,
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<()> {
     tracing_subscriber::fmt().init();
     _ = dotenvy::dotenv();
