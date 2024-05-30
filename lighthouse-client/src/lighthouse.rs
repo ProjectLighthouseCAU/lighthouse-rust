@@ -5,7 +5,7 @@ use futures::{prelude::*, channel::mpsc::{Sender, self}, stream::{SplitSink, Spl
 use lighthouse_protocol::{Authentication, ClientMessage, DirectoryTree, Frame, LaserMetrics, Model, ServerMessage, Value, Verb};
 use serde::{Deserialize, Serialize};
 use tracing::{warn, error, debug, info};
-use crate::{Check, Error, Result, Spawner};
+use crate::{Check, Error, Result, Spawner, StreamExt};
 
 /// A connection to the lighthouse server for sending requests and receiving events.
 pub struct Lighthouse<S> {
@@ -224,21 +224,29 @@ impl<S> Lighthouse<S>
     async fn receive_streaming<R>(&self, request_id: i32) -> Result<impl Stream<Item = Result<ServerMessage<R>>>>
     where
         R: for<'de> Deserialize<'de> {
-        // TODO: Return a custom wrapper type (instead of a standard mpsc::Receiver)
-        //       that keeps a reference to the `txs` + the request id and deregisters
-        //       the corresponding sender on drop, along with sending a STOP
-        //       request.
+        // TODO: Add a stream guard that sends a STOP
 
-        self.receive(request_id).await
+        Ok(self.receive(request_id).await?)
     }
 
     async fn receive<R>(&self, request_id: i32) -> Result<impl Stream<Item = Result<ServerMessage<R>>>>
     where
         R: for<'de> Deserialize<'de> {
-        let mut txs = self.txs.lock().await;
-        let (tx, rx) = mpsc::channel(4);
-        txs.insert(request_id, tx);
-        Ok(rx.map(|s| Ok(s.decode_payload()?)))
+        let rx = {
+            let mut txs = self.txs.lock().await;
+            let (tx, rx) = mpsc::channel(4);
+            txs.insert(request_id, tx);
+            rx
+        };
+        Ok(rx.map(|s| Ok(s.decode_payload()?)).guard({
+            let txs = self.txs.clone();
+            move || {
+                tokio::spawn(async move {
+                    let mut txs = txs.lock().await;
+                    txs.remove(&request_id);
+                });
+            }
+        }))
     }
 
     /// Sends raw bytes to the lighthouse via the WebSocket connection.
