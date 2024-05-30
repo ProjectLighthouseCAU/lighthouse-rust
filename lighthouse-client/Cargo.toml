@@ -26,6 +26,7 @@ serde_with = "3.4"
 rmp-serde = "1.0"
 rand = "0.8"
 thiserror = "1.0.58"
+pin-project = "1.1.5"
 
 [dev-dependencies]
 tracing-subscriber = { version = "0.3", features = ["env-filter", "std"] }
