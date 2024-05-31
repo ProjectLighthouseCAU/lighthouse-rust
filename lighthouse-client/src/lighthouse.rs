@@ -4,8 +4,9 @@ use async_tungstenite::tungstenite::{Message, self};
 use futures::{prelude::*, channel::mpsc::{Sender, self}, stream::{SplitSink, SplitStream}, lock::Mutex};
 use lighthouse_protocol::{Authentication, ClientMessage, DirectoryTree, Frame, LaserMetrics, Model, ServerMessage, Value, Verb};
 use serde::{Deserialize, Serialize};
+use stream_guard::GuardStreamExt;
 use tracing::{warn, error, debug, info};
-use crate::{Check, Error, Result, Spawner, StreamExt};
+use crate::{Check, Error, Result, Spawner};
 
 /// A connection to the lighthouse server for sending requests and receiving events.
 pub struct Lighthouse<S> {
