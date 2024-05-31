@@ -32,7 +32,6 @@ enum Slot<M> {
 impl<S> Lighthouse<S>
     where S: Stream<Item = tungstenite::Result<Message>>
            + Sink<Message, Error = tungstenite::Error>
-           + Unpin
            + Send
            + 'static {
     /// Connects to the lighthouse using the given credentials.
