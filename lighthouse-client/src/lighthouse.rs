@@ -20,12 +20,19 @@ pub struct Lighthouse<S> {
     request_id: i32,
 }
 
+/// A facility for coordinating asynchronous responses to a request between a
+/// requesting task and a receive loop task.
 enum Slot<M> {
-    /// Indicates that messages were received before the request task queried it.
-    /// Generally set by the receive loop task.
+    /// Indicates that messages were received before the requesting task
+    /// registered the slot. **The receive loop** will construct this variant in
+    /// that case, i.e. store the already received messages in a
+    /// [`Slot::EarlyMessages`].
     EarlyMessages(Vec<M>),
-    /// Indicates that messages were not received before the request task queried it.
-    /// Generally set by the request task.
+    /// Indicates that no messages were received before the requesting task
+    /// registered the slot. **The requesting thread** will construct this
+    /// variant in that case, i.e. create a channel, store the sender in a
+    /// [`Slot::WaitForMessages`] for the receive loop and then return the
+    /// receiver.
     WaitForMessages(Sender<M>),
 }
 
