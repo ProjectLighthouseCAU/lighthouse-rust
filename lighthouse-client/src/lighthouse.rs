@@ -182,6 +182,11 @@ impl<S> Lighthouse<S>
         self.perform(&Verb::Unlink, dest_path, src_path).await
     }
 
+    /// Stops the given stream.
+    pub async fn stop(&mut self, path: &[&str]) -> Result<ServerMessage<()>> {
+        self.perform(&Verb::Stop, path, ()).await
+    }
+
     /// Performs a single request to the given path with the given payload.
     #[tracing::instrument(skip(self, payload))]
     pub async fn perform<P, R>(&mut self, verb: &Verb, path: &[&str], payload: P) -> Result<ServerMessage<R>>
@@ -202,6 +207,7 @@ impl<S> Lighthouse<S>
         R: for<'de> Deserialize<'de> {
         let request_id = self.send_request(&Verb::Stream, path, payload).await?;
         let stream = self.receive_streaming(request_id).await?;
+        // TODO: Send STOP once dropped
         Ok(stream)
     }
 
@@ -245,9 +251,7 @@ impl<S> Lighthouse<S>
     async fn receive_streaming<R>(&self, request_id: i32) -> Result<impl Stream<Item = Result<ServerMessage<R>>>>
     where
         R: for<'de> Deserialize<'de> {
-        // TODO: Add a stream guard that sends a STOP
-
-        Ok(self.receive(request_id).await?)
+        self.receive(request_id).await
     }
 
     async fn receive<R>(&self, request_id: i32) -> Result<impl Stream<Item = Result<ServerMessage<R>>>>
