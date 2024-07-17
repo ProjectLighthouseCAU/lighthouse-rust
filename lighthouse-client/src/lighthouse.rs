@@ -295,4 +295,11 @@ impl<S> Lighthouse<S>
     pub fn authentication(&self) -> &Authentication {
         &self.authentication
     }
+
+    /// Closes the WebSocket connection gracefully with a close message. While
+    /// the server will usually also handle abruptly closed connections
+    /// properly, it is recommended to always close the [``Lighthouse``].
+    pub async fn close(&self) -> Result<()> {
+        Ok(self.ws_sink.lock().await.close().await?)
+    }
 }
