@@ -19,6 +19,8 @@ pub enum Error {
     Server { code: i32, message: Option<String>, warnings: Vec<String> },
     #[error("No next message available")]
     NoNextMessage,
+    #[error("The connection was closed")]
+    ConnectionClosed,
     #[error("Custom error")]
     Custom(String),
 }

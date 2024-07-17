@@ -111,8 +111,8 @@ impl<S> Lighthouse<S>
             let message = ws_stream.next().await.ok_or_else(|| Error::NoNextMessage)??;
             match message {
                 Message::Binary(bytes) => break Ok(bytes),
-                // We ignore pings for now
-                Message::Ping(_) => {},
+                Message::Ping(_) => {}, // Ignore pings for now
+                Message::Close(_) => break Err(Error::ConnectionClosed),
                 _ => warn!("Got non-binary message: {:?}", message),
             }
         }
