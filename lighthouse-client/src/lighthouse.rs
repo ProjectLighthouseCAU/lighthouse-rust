@@ -85,6 +85,10 @@ impl<S> Lighthouse<S>
                         warn!("Got message without request id from server: {:?}", msg);
                     }
                 },
+                Err(Error::NoNextMessage) => {
+                    info!("No next message available, closing receive loop");
+                    break
+                },
                 Err(e) => error!("Bad message: {:?}", e),
             }
         }
@@ -104,7 +108,7 @@ impl<S> Lighthouse<S>
     #[tracing::instrument(skip(ws_stream))]
     async fn receive_raw_from(ws_stream: &mut SplitStream<S>) -> Result<Vec<u8>> {
         loop {
-            let message = ws_stream.next().await.ok_or_else(|| Error::custom("Got no message"))??;
+            let message = ws_stream.next().await.ok_or_else(|| Error::NoNextMessage)??;
             match message {
                 Message::Binary(bytes) => break Ok(bytes),
                 // We ignore pings for now

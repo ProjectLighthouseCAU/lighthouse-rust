@@ -17,6 +17,8 @@ pub enum Error {
     Value(#[from] ValueError),
     #[error("Server error: {} {} (warnings: {:?})", code, message.clone().unwrap_or_else(|| "(no message)".to_string()), warnings)]
     Server { code: i32, message: Option<String>, warnings: Vec<String> },
+    #[error("No next message available")]
+    NoNextMessage,
     #[error("Custom error")]
     Custom(String),
 }
