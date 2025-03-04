@@ -1,7 +1,7 @@
 use clap::Parser;
 use futures::{Stream, lock::Mutex, StreamExt};
 use lighthouse_client::{Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL, protocol::{Authentication, Color, Frame, ServerMessage, LIGHTHOUSE_RECT, LIGHTHOUSE_SIZE}};
-use lighthouse_protocol::{Delta, Model, Pos};
+use lighthouse_protocol::{Delta, InputEvent, KeyEvent, Pos};
 use tracing::{info, debug};
 use tokio::{task, time};
 use std::{collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
@@ -142,16 +142,16 @@ async fn run_updater(lh: Lighthouse<TokioWebSocket>, shared_state: Arc<Mutex<Sta
     }
 }
 
-async fn run_controller(mut stream: impl Stream<Item = Result<ServerMessage<Model>>> + Unpin, shared_state: Arc<Mutex<State>>) -> Result<()> {
+async fn run_controller(mut stream: impl Stream<Item = Result<ServerMessage<InputEvent>>> + Unpin, shared_state: Arc<Mutex<State>>) -> Result<()> {
     while let Some(msg) = stream.next().await {
-        if let Model::InputEvent(event) = msg?.payload {
-            if event.is_down {
+        match msg?.payload {
+            InputEvent::Key(KeyEvent { key, down, .. }) if down => {
                 // Map the key code to a direction vector
-                let opt_dir = match event.key {
-                    Some(37) => Some(Delta::<i32>::LEFT),
-                    Some(38) => Some(Delta::<i32>::UP),
-                    Some(39) => Some(Delta::<i32>::RIGHT),
-                    Some(40) => Some(Delta::<i32>::DOWN),
+                let opt_dir = match key.as_str() {
+                    "ArrowLeft" => Some(Delta::<i32>::LEFT),
+                    "ArrowUp" => Some(Delta::<i32>::UP),
+                    "ArrowRight" => Some(Delta::<i32>::RIGHT),
+                    "ArrowDown" => Some(Delta::<i32>::DOWN),
                     _ => None,
                 };
 
@@ -162,6 +162,7 @@ async fn run_controller(mut stream: impl Stream<Item = Result<ServerMessage<Mode
                     state.snake.rotate_head(dir);
                 }
             }
+            _ => {},
         }
     }
 
@@ -193,7 +194,7 @@ async fn main() -> Result<()> {
     let lh = Lighthouse::connect_with_tokio_to(&args.url, auth).await?;
     info!("Connected to the Lighthouse server");
 
-    let stream = lh.stream_model().await?;
+    let stream = lh.stream_input().await?;
 
     let updater_handle = task::spawn(run_updater(lh, state.clone()));
     let controller_handle = task::spawn(run_controller(stream, state));
