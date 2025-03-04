@@ -4,6 +4,7 @@ use super::EventSource;
 
 /// A keyboard event.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct KeyEvent {
     /// The client identifier.
     pub source: EventSource,
