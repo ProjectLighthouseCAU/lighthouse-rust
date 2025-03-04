@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicI32, Ordering}
 
 use async_tungstenite::tungstenite::{Message, self};
 use futures::{prelude::*, channel::mpsc::{Sender, self}, stream::{SplitSink, SplitStream}, lock::Mutex};
-use lighthouse_protocol::{Authentication, ClientMessage, DirectoryTree, Frame, LaserMetrics, Model, ServerMessage, Value, Verb};
+use lighthouse_protocol::{Authentication, ClientMessage, DirectoryTree, Frame, InputEvent, LaserMetrics, Model, ServerMessage, Value, Verb};
 use serde::{Deserialize, Serialize};
 use stream_guard::GuardStreamExt;
 use tracing::{warn, error, debug, info};
@@ -128,6 +128,25 @@ impl<S> Lighthouse<S>
     pub async fn stream_model(&self) -> Result<impl Stream<Item = Result<ServerMessage<Model>>>> {
         let username = self.authentication.username.clone();
         self.stream(&["user".into(), username, "model".into()], ()).await
+    }
+
+    /// Sends an input event to the user's input endpoint.
+    /// 
+    /// Note that this is the new API which not all clients may support.
+    pub async fn put_input(&self, payload: InputEvent) -> Result<ServerMessage<()>> {
+        let username = self.authentication.username.clone();
+        self.put(&["user".into(), username, "input".into()], payload).await
+    }
+
+    /// Streams input events from the user's input endpoint.
+    /// 
+    /// Note that this is the new API which not all clients may support (in LUNA
+    /// disabling the legacy mode will send events to this endpoint).  If your
+    /// client or library does not support this, you may need to `stream_model`
+    /// and parse `LegacyInputEvent`s from there.
+    pub async fn stream_input(&self) -> Result<impl Stream<Item = Result<ServerMessage<InputEvent>>>> {
+        let username = self.authentication.username.clone();
+        self.stream(&["user".into(), username, "input".into()], ()).await
     }
 
     /// Fetches lamp server metrics.
