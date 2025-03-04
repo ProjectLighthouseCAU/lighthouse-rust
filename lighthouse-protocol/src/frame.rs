@@ -51,16 +51,16 @@ impl Frame {
     }
 }
 
-impl Index<Pos> for Frame {
+impl Index<Pos<i32>> for Frame {
     type Output = Color;
 
-    fn index(&self, pos: Pos) -> &Color {
+    fn index(&self, pos: Pos<i32>) -> &Color {
         &self.pixels[LIGHTHOUSE_RECT.index_of(pos)]
     }
 }
 
-impl IndexMut<Pos> for Frame {
-    fn index_mut(&mut self, pos: Pos) -> &mut Color {
+impl IndexMut<Pos<i32>> for Frame {
+    fn index_mut(&mut self, pos: Pos<i32>) -> &mut Color {
         &mut self.pixels[LIGHTHOUSE_RECT.index_of(pos)]
     }
 }
