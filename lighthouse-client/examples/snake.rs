@@ -1,7 +1,7 @@
 use clap::Parser;
 use futures::{Stream, lock::Mutex, StreamExt};
-use lighthouse_client::{Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL, protocol::{Authentication, Color, Delta, Frame, Pos, ServerMessage, LIGHTHOUSE_RECT, LIGHTHOUSE_SIZE}};
-use lighthouse_protocol::Model;
+use lighthouse_client::{Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL, protocol::{Authentication, Color, Frame, ServerMessage, LIGHTHOUSE_RECT, LIGHTHOUSE_SIZE}};
+use lighthouse_protocol::{Delta, InputEvent, KeyEvent, Pos};
 use tracing::{info, debug};
 use tokio::{task, time};
 use std::{collections::{VecDeque, HashSet}, sync::Arc, time::Duration};
@@ -13,14 +13,14 @@ const SNAKE_INITIAL_LENGTH: usize = 3;
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct Snake {
-    fields: VecDeque<Pos>,
-    dir: Delta,
+    fields: VecDeque<Pos<i32>>,
+    dir: Delta<i32>,
 }
 
 impl Snake {
     fn from_initial_length(length: usize) -> Self {
-        let mut pos: Pos = LIGHTHOUSE_RECT.sample_random().unwrap();
-        let dir = Delta::random_cardinal();
+        let mut pos: Pos<i32> = LIGHTHOUSE_RECT.sample_random().unwrap();
+        let dir = Delta::<i32>::random_cardinal();
 
         let mut fields = VecDeque::new();
         for _ in 0..length {
@@ -31,9 +31,9 @@ impl Snake {
         Self { fields, dir }
     }
 
-    fn head(&self) -> Pos { *self.fields.front().unwrap() }
+    fn head(&self) -> Pos<i32> { *self.fields.front().unwrap() }
 
-    fn back(&self) -> Pos { *self.fields.back().unwrap() }
+    fn back(&self) -> Pos<i32> { *self.fields.back().unwrap() }
 
     fn grow(&mut self) {
         self.fields.push_back(LIGHTHOUSE_RECT.wrap(self.back() - self.dir));
@@ -49,7 +49,7 @@ impl Snake {
         self.fields.iter().collect::<HashSet<_>>().len() < self.fields.len()
     }
 
-    fn rotate_head(&mut self, dir: Delta) {
+    fn rotate_head(&mut self, dir: Delta<i32>) {
         self.dir = dir;
     }
 
@@ -63,7 +63,7 @@ impl Snake {
         self.fields.len()
     }
 
-    fn random_fruit_pos(&self) -> Option<Pos> {
+    fn random_fruit_pos(&self) -> Option<Pos<i32>> {
         let fields = self.fields.iter().collect::<HashSet<_>>();
         if fields.len() >= LIGHTHOUSE_SIZE {
             None
@@ -81,7 +81,7 @@ impl Snake {
 #[derive(Debug, PartialEq, Eq, Clone)]
 struct State {
     snake: Snake,
-    fruit: Pos,
+    fruit: Pos<i32>,
 }
 
 impl State {
@@ -142,16 +142,16 @@ async fn run_updater(lh: Lighthouse<TokioWebSocket>, shared_state: Arc<Mutex<Sta
     }
 }
 
-async fn run_controller(mut stream: impl Stream<Item = Result<ServerMessage<Model>>> + Unpin, shared_state: Arc<Mutex<State>>) -> Result<()> {
+async fn run_controller(mut stream: impl Stream<Item = Result<ServerMessage<InputEvent>>> + Unpin, shared_state: Arc<Mutex<State>>) -> Result<()> {
     while let Some(msg) = stream.next().await {
-        if let Model::InputEvent(event) = msg?.payload {
-            if event.is_down {
+        match msg?.payload {
+            InputEvent::Key(KeyEvent { key, down, .. }) if down => {
                 // Map the key code to a direction vector
-                let opt_dir = match event.key {
-                    Some(37) => Some(Delta::LEFT),
-                    Some(38) => Some(Delta::UP),
-                    Some(39) => Some(Delta::RIGHT),
-                    Some(40) => Some(Delta::DOWN),
+                let opt_dir = match key.as_str() {
+                    "ArrowLeft" => Some(Delta::<i32>::LEFT),
+                    "ArrowUp" => Some(Delta::<i32>::UP),
+                    "ArrowRight" => Some(Delta::<i32>::RIGHT),
+                    "ArrowDown" => Some(Delta::<i32>::DOWN),
                     _ => None,
                 };
 
@@ -162,6 +162,7 @@ async fn run_controller(mut stream: impl Stream<Item = Result<ServerMessage<Mode
                     state.snake.rotate_head(dir);
                 }
             }
+            _ => {},
         }
     }
 
@@ -193,7 +194,7 @@ async fn main() -> Result<()> {
     let lh = Lighthouse::connect_with_tokio_to(&args.url, auth).await?;
     info!("Connected to the Lighthouse server");
 
-    let stream = lh.stream_model().await?;
+    let stream = lh.stream_input().await?;
 
     let updater_handle = task::spawn(run_updater(lh, state.clone()));
     let controller_handle = task::spawn(run_controller(stream, state));

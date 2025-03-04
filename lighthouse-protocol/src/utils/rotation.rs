@@ -1,40 +1,44 @@
-use std::ops::Mul;
+use std::ops::{Add, Mul, Neg};
 
 use rand::{thread_rng, Rng};
 
-use crate::Delta;
+use crate::Vec2;
+
+use super::{Unity, Zero};
+
+// TODO: Rename this to Mat2?
 
 /// An 2D rotation that is representable using an integer matrix.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Rotation {
+pub struct Rotation<T> {
     /// The integer matrix representing the corresponding linear transformation.
-    matrix: [i32; 4],
+    matrix: [T; 4],
 }
 
-impl Rotation {
+impl<T> Rotation<T> where T: Zero + Unity + Neg<Output = T> {
     /// The identity rotation.
     pub const IDENTITY: Self = Self::new([
-         1,  0,
-         0,  1,
+        T::ONE,  T::ZERO,
+        T::ZERO, T::ONE,
     ]);
     /// The rotation by 90° clockwise.
     pub const CW_90: Self = Self::new([
-         0, -1,
-         1,  0,
+         T::ZERO, T::NEG_ONE,
+         T::ONE,  T::ZERO,
     ]);
     /// The rotation by 180° clockwise or counter-clockwise.
     pub const CW_180: Self = Self::new([
-        -1,  0,
-         0, -1,
+        T::NEG_ONE, T::ZERO,
+        T::ZERO,    T::NEG_ONE,
     ]);
     /// The rotation by 270° clockwise (or 90° counter-clockwise).
     pub const CW_270: Self = Self::new([
-         0,  1,
-        -1,  0,
+        T::ZERO,    T::ONE,
+        T::NEG_ONE, T::ZERO,
     ]);
 
     /// Creates a new rotation from the given matrix.
-    pub const fn new(matrix: [i32; 4]) -> Self {
+    pub const fn new(matrix: [T; 4]) -> Self {
         Self { matrix }
     }
 
@@ -55,8 +59,8 @@ impl Rotation {
     }
 }
 
-impl Mul<Rotation> for Rotation {
-    type Output = Rotation;
+impl<T> Mul<Self> for Rotation<T> where T: Zero + Unity + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Copy {
+    type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
         // Standard 2x2 matrix multiplication
@@ -69,40 +73,40 @@ impl Mul<Rotation> for Rotation {
     }
 }
 
-impl Mul<Delta> for Rotation {
-    type Output = Delta;
+impl<T> Mul<Vec2<T>> for Rotation<T> where T: Zero + Unity + Neg<Output = T> + Add<Output = T> + Mul<Output = T> + Copy {
+    type Output = Vec2<T>;
 
-    fn mul(self, rhs: Delta) -> Delta {
+    fn mul(self, rhs: Vec2<T>) -> Vec2<T> {
         // Standard matrix-vector multiplication
-        Delta::new(
-            self.matrix[0] * rhs.dx + self.matrix[1] * rhs.dy,
-            self.matrix[2] * rhs.dx + self.matrix[3] * rhs.dy ,
+        Vec2::new(
+            self.matrix[0] * rhs.x + self.matrix[1] * rhs.y,
+            self.matrix[2] * rhs.x + self.matrix[3] * rhs.y ,
         )
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::Delta;
+    use crate::Vec2;
 
     use super::Rotation;
 
     #[test]
     fn rotation() {
-        assert_eq!(Rotation::IDENTITY * Delta::new(4, -3), Delta::new(4, -3));
-        assert_eq!(Rotation::CW_90 * Delta::new(2, 3), Delta::new(-3, 2));
-        assert_eq!(Rotation::CW_90 * Delta::RIGHT, Delta::DOWN);
-        assert_eq!(Rotation::CW_90 * Delta::DOWN, Delta::LEFT);
-        assert_eq!(Rotation::CW_90 * Delta::LEFT, Delta::UP);
-        assert_eq!(Rotation::CW_90 * Delta::UP, Delta::RIGHT);
+        assert_eq!(Rotation::IDENTITY * Vec2::new(4, -3), Vec2::new(4, -3));
+        assert_eq!(Rotation::CW_90 * Vec2::new(2, 3), Vec2::new(-3, 2));
+        assert_eq!(Rotation::CW_90 * Vec2::<i32>::RIGHT, Vec2::DOWN);
+        assert_eq!(Rotation::CW_90 * Vec2::<i32>::DOWN, Vec2::LEFT);
+        assert_eq!(Rotation::CW_90 * Vec2::<i32>::LEFT, Vec2::UP);
+        assert_eq!(Rotation::CW_90 * Vec2::<i32>::UP, Vec2::RIGHT);
     }
 
     #[test]
     fn matmul() {
-        assert_eq!(Rotation::IDENTITY * Rotation::IDENTITY, Rotation::IDENTITY);
-        assert_eq!(Rotation::IDENTITY * Rotation::CW_90, Rotation::CW_90);
-        assert_eq!(Rotation::CW_90 * Rotation::CW_90, Rotation::CW_180);
-        assert_eq!(Rotation::CW_90 * Rotation::CW_180, Rotation::CW_270);
-        assert_eq!(Rotation::CW_180 * Rotation::CW_180, Rotation::IDENTITY);
+        assert_eq!(Rotation::IDENTITY * Rotation::<i32>::IDENTITY, Rotation::IDENTITY);
+        assert_eq!(Rotation::IDENTITY * Rotation::<i32>::CW_90, Rotation::CW_90);
+        assert_eq!(Rotation::CW_90 * Rotation::<i32>::CW_90, Rotation::CW_180);
+        assert_eq!(Rotation::CW_90 * Rotation::<i32>::CW_180, Rotation::CW_270);
+        assert_eq!(Rotation::CW_180 * Rotation::<i32>::CW_180, Rotation::IDENTITY);
     }
 }
