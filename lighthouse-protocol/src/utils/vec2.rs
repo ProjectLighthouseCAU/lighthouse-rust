@@ -17,6 +17,14 @@ impl<T> Vec2<T> {
     pub const fn new(x: T, y: T) -> Self {
         Self { x, y }
     }
+
+    /// Maps a function over the vector.
+    pub fn map<U>(self, mut f: impl FnMut(T) -> U) -> Vec2<U> {
+        Vec2 {
+            x: f(self.x),
+            y: f(self.y),
+        }
+    }
 }
 
 impl<T> Zero for Vec2<T> where T: Zero {
