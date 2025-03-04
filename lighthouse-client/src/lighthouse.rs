@@ -188,8 +188,8 @@ impl<S> Lighthouse<S>
 
     /// Stops the given stream. **Should generally not be called manually**,
     /// since streams will automatically be stopped once dropped.
-    pub async fn stop(&self, path: &[&str]) -> Result<ServerMessage<()>> {
-        self.perform(&Verb::Stop, path, ()).await
+    pub async fn stop(&self, request_id: i32, path: &[&str]) -> Result<ServerMessage<()>> {
+        self.perform_with_id(request_id, &Verb::Stop, path, ()).await
     }
 
     /// Performs a single request to the given path with the given payload.
@@ -198,8 +198,18 @@ impl<S> Lighthouse<S>
     where
         P: Serialize,
         R: for<'de> Deserialize<'de> {
+        let request_id = self.next_request_id();
+        self.perform_with_id(request_id, verb, path, payload).await
+    }
+
+    /// Performs a single request to the given path with the given request id.
+    #[tracing::instrument(skip(self, payload))]
+    async fn perform_with_id<P, R>(&self, request_id: i32, verb: &Verb, path: &[&str], payload: P) -> Result<ServerMessage<R>>
+    where
+        P: Serialize,
+        R: for<'de> Deserialize<'de> {
         assert_ne!(verb, &Verb::Stream, "Lighthouse::perform may only be used for one-off requests, use Lighthouse::stream for streaming.");
-        let request_id = self.send_request(verb, path, payload).await?;
+        self.send_request(request_id, verb, path, payload).await?;
         let response = self.receive_single(request_id).await?.check()?.decode_payload()?;
         Ok(response)
     }
@@ -211,7 +221,8 @@ impl<S> Lighthouse<S>
     where
         P: Serialize,
         R: for<'de> Deserialize<'de> {
-        let request_id = self.send_request(&Verb::Stream, path, payload).await?;
+        let request_id = self.next_request_id();
+        self.send_request(request_id, &Verb::Stream, path, payload).await?;
         let stream = self.receive_streaming(request_id).await?;
         Ok(stream.guard({
             // Stop the stream on drop
@@ -222,7 +233,7 @@ impl<S> Lighthouse<S>
                     // TODO: Find a more elegant way to pass the path, ideally without
                     // converting back and forth between Vec<String>, Vec<&str> and &[&str]
                     let path: Vec<_> = path.iter().map(|s| &**s).collect();
-                    if let Err(error) = this.stop(&path).await {
+                    if let Err(error) = this.stop(request_id, &path).await {
                         error! { ?path, %error, "Could not STOP stream" };
                     }
                 });
@@ -231,11 +242,10 @@ impl<S> Lighthouse<S>
     }
 
     /// Sends a request to the given path with the given payload.
-    async fn send_request<P>(&self, verb: &Verb, path: &[&str], payload: P) -> Result<i32>
+    async fn send_request<P>(&self, request_id: i32, verb: &Verb, path: &[&str], payload: P) -> Result<i32>
     where
         P: Serialize {
         let path = path.into_iter().map(|s| s.to_string()).collect();
-        let request_id = self.request_id.fetch_add(1, Ordering::Relaxed);
         debug! { %request_id, "Sending request" };
         self.send_message(&ClientMessage {
             request_id,
@@ -307,6 +317,11 @@ impl<S> Lighthouse<S>
     /// Sends raw bytes to the lighthouse via the WebSocket connection.
     async fn send_raw(&self, bytes: impl Into<Vec<u8>> + Debug) -> Result<()> {
         Ok(self.ws_sink.lock().await.send(Message::Binary(bytes.into())).await?)
+    }
+
+    /// Fetches the next request id.
+    fn next_request_id(&self) -> i32 {
+        self.request_id.fetch_add(1, Ordering::Relaxed)
     }
 
     /// Fetches the credentials used to authenticate with the lighthouse.
