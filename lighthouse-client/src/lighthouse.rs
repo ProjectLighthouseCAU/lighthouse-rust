@@ -121,13 +121,13 @@ impl<S> Lighthouse<S>
     /// Replaces the user's lighthouse model with the given frame.
     pub async fn put_model(&self, frame: Frame) -> Result<ServerMessage<()>> {
         let username = self.authentication.username.clone();
-        self.put(&["user", username.as_str(), "model"], Model::Frame(frame)).await
+        self.put(&["user".into(), username, "model".into()], Model::Frame(frame)).await
     }
 
     /// Requests a stream of events (including key/controller events) for the user's lighthouse model.
     pub async fn stream_model(&self) -> Result<impl Stream<Item = Result<ServerMessage<Model>>>> {
         let username = self.authentication.username.clone();
-        self.stream(&["user", username.as_str(), "model"], ()).await
+        self.stream(&["user".into(), username, "model".into()], ()).await
     }
 
     /// Fetches lamp server metrics.
@@ -136,65 +136,65 @@ impl<S> Lighthouse<S>
     }
 
     /// Combines PUT and CREATE. Requires CREATE and WRITE permission.
-    pub async fn post<P>(&self, path: &[&str], payload: P) -> Result<ServerMessage<()>>
+    pub async fn post<P>(&self, path: &[impl AsRef<str> + Debug], payload: P) -> Result<ServerMessage<()>>
     where
         P: Serialize {
         self.perform(&Verb::Post, path, payload).await
     }
 
     /// Updates the resource at the given path with the given payload. Requires WRITE permission.
-    pub async fn put<P>(&self, path: &[&str], payload: P) -> Result<ServerMessage<()>>
+    pub async fn put<P>(&self, path: &[impl AsRef<str> + Debug], payload: P) -> Result<ServerMessage<()>>
     where
         P: Serialize {
         self.perform(&Verb::Put, path, payload).await
     }
 
     /// Creates a resource at the given path. Requires CREATE permission.
-    pub async fn create(&self, path: &[&str]) -> Result<ServerMessage<()>> {
+    pub async fn create(&self, path: &[impl AsRef<str> + Debug]) -> Result<ServerMessage<()>> {
         self.perform(&Verb::Create, path, ()).await
     }
 
     /// Deletes a resource at the given path. Requires DELETE permission.
-    pub async fn delete(&self, path: &[&str]) -> Result<ServerMessage<()>> {
+    pub async fn delete(&self, path: &[impl AsRef<str> + Debug]) -> Result<ServerMessage<()>> {
         self.perform(&Verb::Delete, path, ()).await
     }
 
     /// Creates a directory at the given path. Requires CREATE permission.
-    pub async fn mkdir(&self, path: &[&str]) -> Result<ServerMessage<()>> {
+    pub async fn mkdir(&self, path: &[impl AsRef<str> + Debug]) -> Result<ServerMessage<()>> {
         self.perform(&Verb::Mkdir, path, ()).await
     }
 
     /// Lists the directory tree at the given path. Requires READ permission.
-    pub async fn list(&self, path: &[&str]) -> Result<ServerMessage<DirectoryTree>> {
+    pub async fn list(&self, path: &[impl AsRef<str> + Debug]) -> Result<ServerMessage<DirectoryTree>> {
         self.perform(&Verb::List, path, ()).await
     }
 
     /// Gets the resource at the given path. Requires READ permission.
-    pub async fn get<R>(&self, path: &[&str]) -> Result<ServerMessage<R>>
+    pub async fn get<R>(&self, path: &[impl AsRef<str> + Debug]) -> Result<ServerMessage<R>>
     where
         R: for<'de> Deserialize<'de> {
         self.perform(&Verb::Get, path, ()).await
     }
 
     /// Links the given source to the given destination path.
-    pub async fn link(&self, src_path: &[&str], dest_path: &[&str]) -> Result<ServerMessage<()>> {
-        self.perform(&Verb::Link, dest_path, src_path).await
+    pub async fn link(&self, src_path: &[impl AsRef<str> + Debug], dest_path: &[impl AsRef<str> + Debug]) -> Result<ServerMessage<()>> {
+        self.perform(&Verb::Link, dest_path, src_path.iter().map(|s| s.as_ref().to_owned()).collect::<Vec<_>>()).await
     }
 
     /// Unlinks the given source from the given destination path.
-    pub async fn unlink(&self, src_path: &[&str], dest_path: &[&str]) -> Result<ServerMessage<()>> {
-        self.perform(&Verb::Unlink, dest_path, src_path).await
+    pub async fn unlink(&self, src_path: &[impl AsRef<str> + Debug], dest_path: &[impl AsRef<str> + Debug]) -> Result<ServerMessage<()>> {
+        self.perform(&Verb::Unlink, dest_path, src_path.iter().map(|s| s.as_ref().to_owned()).collect::<Vec<_>>()).await
     }
 
     /// Stops the given stream. **Should generally not be called manually**,
     /// since streams will automatically be stopped once dropped.
-    pub async fn stop(&self, request_id: i32, path: &[&str]) -> Result<ServerMessage<()>> {
+    pub async fn stop(&self, request_id: i32, path: &[impl AsRef<str> + Debug]) -> Result<ServerMessage<()>> {
         self.perform_with_id(request_id, &Verb::Stop, path, ()).await
     }
 
     /// Performs a single request to the given path with the given payload.
     #[tracing::instrument(skip(self, payload))]
-    pub async fn perform<P, R>(&self, verb: &Verb, path: &[&str], payload: P) -> Result<ServerMessage<R>>
+    pub async fn perform<P, R>(&self, verb: &Verb, path: &[impl AsRef<str> + Debug], payload: P) -> Result<ServerMessage<R>>
     where
         P: Serialize,
         R: for<'de> Deserialize<'de> {
@@ -204,7 +204,7 @@ impl<S> Lighthouse<S>
 
     /// Performs a single request to the given path with the given request id.
     #[tracing::instrument(skip(self, payload))]
-    async fn perform_with_id<P, R>(&self, request_id: i32, verb: &Verb, path: &[&str], payload: P) -> Result<ServerMessage<R>>
+    async fn perform_with_id<P, R>(&self, request_id: i32, verb: &Verb, path: &[impl AsRef<str> + Debug], payload: P) -> Result<ServerMessage<R>>
     where
         P: Serialize,
         R: for<'de> Deserialize<'de> {
@@ -217,22 +217,19 @@ impl<S> Lighthouse<S>
     /// Performs a STREAM request to the given path with the given payload.
     /// Automatically sends a STOP once dropped.
     #[tracing::instrument(skip(self, payload))]
-    pub async fn stream<P, R>(&self, path: &[&str], payload: P) -> Result<impl Stream<Item = Result<ServerMessage<R>>>>
+    pub async fn stream<P, R>(&self, path: &[impl AsRef<str> + Debug], payload: P) -> Result<impl Stream<Item = Result<ServerMessage<R>>>>
     where
         P: Serialize,
         R: for<'de> Deserialize<'de> {
         let request_id = self.next_request_id();
-        self.send_request(request_id, &Verb::Stream, path, payload).await?;
+        let path: Vec<String> = path.into_iter().map(|s| s.as_ref().to_string()).collect();
+        self.send_request(request_id, &Verb::Stream, &path, payload).await?;
         let stream = self.receive_streaming(request_id).await?;
         Ok(stream.guard({
             // Stop the stream on drop
             let this = (*self).clone();
-            let path: Vec<_> = path.into_iter().map(|s| s.to_string()).collect();
             move || {
                 tokio::spawn(async move {
-                    // TODO: Find a more elegant way to pass the path, ideally without
-                    // converting back and forth between Vec<String>, Vec<&str> and &[&str]
-                    let path: Vec<_> = path.iter().map(|s| &**s).collect();
                     if let Err(error) = this.stop(request_id, &path).await {
                         error! { ?path, %error, "Could not STOP stream" };
                     }
@@ -242,10 +239,10 @@ impl<S> Lighthouse<S>
     }
 
     /// Sends a request to the given path with the given payload.
-    async fn send_request<P>(&self, request_id: i32, verb: &Verb, path: &[&str], payload: P) -> Result<i32>
+    async fn send_request<P>(&self, request_id: i32, verb: &Verb, path: &[impl AsRef<str> + Debug], payload: P) -> Result<i32>
     where
         P: Serialize {
-        let path = path.into_iter().map(|s| s.to_string()).collect();
+        let path = path.into_iter().map(|s| s.as_ref().to_string()).collect();
         debug! { %request_id, "Sending request" };
         self.send_message(&ClientMessage {
             request_id,

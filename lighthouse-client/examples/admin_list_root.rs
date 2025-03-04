@@ -1,11 +1,11 @@
 use clap::Parser;
-use lighthouse_client::{protocol::Authentication, Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL};
+use lighthouse_client::{protocol::Authentication, root, Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL};
 use tracing::info;
 
 async fn run(lh: Lighthouse<TokioWebSocket>) -> Result<()> {
     info!("Connected to the Lighthouse server");
 
-    let tree = lh.list(&[]).await?.payload;
+    let tree = lh.list(root![]).await?.payload;
     info!("Got {}", tree);
 
     Ok(())
