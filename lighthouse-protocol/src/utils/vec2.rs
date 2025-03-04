@@ -1,11 +1,12 @@
 use std::{fmt, ops::{Add, AddAssign, Neg, Sub, SubAssign}};
 
 use rand::{thread_rng, Rng};
+use serde::{Deserialize, Serialize};
 
 use super::{Unity, Zero};
 
 /// A 2D vector.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Vec2<T> {
     pub x: T,
     pub y: T,
