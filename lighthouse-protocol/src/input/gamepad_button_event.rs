@@ -5,9 +5,9 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "control", rename_all = "camelCase")]
 pub struct GamepadButtonEvent {
     /// The button index.
-    index: usize,
+    pub index: usize,
     /// Whether the button is pressed.
-    down: bool,
+    pub down: bool,
     /// The value of the button (between 0.0 and 1.0, modeled after the Web Gamepad API).
-    value: f64,
+    pub value: f64,
 }

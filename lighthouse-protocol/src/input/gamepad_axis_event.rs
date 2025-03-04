@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[serde(tag = "control", rename_all = "camelCase")]
 pub struct GamepadAxisEvent {
     /// The axis index.
-    index: usize,
+    pub index: usize,
     /// The value of the axis (between -1.0 and 1.0, modeled after the Web Gamepad API).
-    value: f64,
+    pub value: f64,
 }
