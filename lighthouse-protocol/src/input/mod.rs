@@ -1,3 +1,3 @@
-mod legacy;
+mod legacy_input_event;
 
-pub use legacy::*;
+pub use legacy_input_event::*;
