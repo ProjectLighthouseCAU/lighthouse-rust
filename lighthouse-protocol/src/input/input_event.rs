@@ -15,7 +15,7 @@ pub enum InputEvent {
 mod tests {
     use serde_json::json;
 
-    use crate::{EventSource, GamepadAxisEvent, GamepadButtonEvent, GamepadControlEvent, GamepadEvent, InputEvent, KeyEvent, MouseButton, MouseEvent, Pos};
+    use crate::{EventSource, GamepadAxisEvent, GamepadButtonEvent, GamepadControlEvent, GamepadEvent, InputEvent, KeyEvent, KeyModifiers, MouseButton, MouseEvent, Pos};
 
     #[test]
     fn key_event() {
@@ -26,20 +26,19 @@ mod tests {
                 "down": true,
                 "repeat": false,
                 "code": "ArrowUp",
-                "altKey": false,
-                "ctrlKey": false,
-                "metaKey": false,
-                "shiftKey": false,
+                "modifiers": {
+                    "alt": false,
+                    "ctrl": false,
+                    "meta": false,
+                    "shift": false,
+                },
             })).unwrap(),
             InputEvent::Key(KeyEvent {
                 source: EventSource::Int(0),
                 down: true,
                 repeat: false,
                 code: "ArrowUp".into(),
-                alt_key: false,
-                ctrl_key: false,
-                meta_key: false,
-                shift_key: false,
+                modifiers: KeyModifiers::default(),
             })
         );
     }
