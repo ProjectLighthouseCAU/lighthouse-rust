@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::{GamepadAxisEvent, GamepadButtonEvent};
+use super::{GamepadAxis2DEvent, GamepadAxisEvent, GamepadButtonEvent};
 
 /// A control-specific event on a gamepad.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -8,4 +8,6 @@ use super::{GamepadAxisEvent, GamepadButtonEvent};
 pub enum GamepadControlEvent {
     Button(GamepadButtonEvent),
     Axis(GamepadAxisEvent),
+    #[serde(rename = "axis2d")]
+    Axis2D(GamepadAxis2DEvent),
 }

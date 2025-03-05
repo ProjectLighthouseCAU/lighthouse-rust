@@ -1,4 +1,5 @@
 mod event_source;
+mod gamepad_axis_2d_event;
 mod gamepad_axis_event;
 mod gamepad_button_event;
 mod gamepad_control_event;
@@ -11,6 +12,7 @@ mod mouse_button;
 mod mouse_event;
 
 pub use event_source::*;
+pub use gamepad_axis_2d_event::*;
 pub use gamepad_axis_event::*;
 pub use gamepad_button_event::*;
 pub use gamepad_control_event::*;
