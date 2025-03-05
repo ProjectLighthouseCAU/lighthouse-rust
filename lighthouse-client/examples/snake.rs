@@ -145,9 +145,9 @@ async fn run_updater(lh: Lighthouse<TokioWebSocket>, shared_state: Arc<Mutex<Sta
 async fn run_controller(mut stream: impl Stream<Item = Result<ServerMessage<InputEvent>>> + Unpin, shared_state: Arc<Mutex<State>>) -> Result<()> {
     while let Some(msg) = stream.next().await {
         match msg?.payload {
-            InputEvent::Key(KeyEvent { key, down, .. }) if down => {
+            InputEvent::Key(KeyEvent { code, down, .. }) if down => {
                 // Map the key code to a direction vector
-                let opt_dir = match key.as_str() {
+                let opt_dir = match code.as_str() {
                     "ArrowLeft" => Some(Delta::<i32>::LEFT),
                     "ArrowUp" => Some(Delta::<i32>::UP),
                     "ArrowRight" => Some(Delta::<i32>::RIGHT),

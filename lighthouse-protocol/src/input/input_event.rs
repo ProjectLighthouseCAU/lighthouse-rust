@@ -24,12 +24,22 @@ mod tests {
                 "type": "key",
                 "source": 0,
                 "down": true,
-                "key": "ArrowUp",
+                "repeat": false,
+                "code": "ArrowUp",
+                "altKey": false,
+                "ctrlKey": false,
+                "metaKey": false,
+                "shiftKey": false,
             })).unwrap(),
             InputEvent::Key(KeyEvent {
                 source: EventSource::Int(0),
                 down: true,
-                key: "ArrowUp".into(),
+                repeat: false,
+                code: "ArrowUp".into(),
+                alt_key: false,
+                ctrl_key: false,
+                meta_key: false,
+                shift_key: false,
             })
         );
     }
