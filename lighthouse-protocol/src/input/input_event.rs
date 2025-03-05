@@ -15,7 +15,7 @@ pub enum InputEvent {
 mod tests {
     use serde_json::json;
 
-    use crate::{EventSource, GamepadAxisEvent, GamepadButtonEvent, GamepadControlEvent, GamepadEvent, InputEvent, KeyEvent, KeyModifiers, MouseButton, MouseEvent, Pos};
+    use crate::{EventSource, GamepadAxis2DEvent, GamepadAxisEvent, GamepadButtonEvent, GamepadControlEvent, GamepadEvent, InputEvent, KeyEvent, KeyModifiers, MouseButton, MouseEvent, Pos, Vec2};
 
     #[test]
     fn key_event() {
@@ -100,6 +100,29 @@ mod tests {
                 control: GamepadControlEvent::Axis(GamepadAxisEvent {
                     index: 42,
                     value: 0.25,
+                }),
+            })
+        );
+    }
+
+    #[test]
+    fn gamepad_axis_2d_event() {
+        assert_eq!(
+            serde_json::from_value::<InputEvent>(json!({
+                "type": "gamepad",
+                "source": 1,
+                "control": "axis2d",
+                "index": 42,
+                "value": {
+                    "x": 0.2,
+                    "y": -0.2,
+                },
+            })).unwrap(),
+            InputEvent::Gamepad(GamepadEvent {
+                source: EventSource::Int(1),
+                control: GamepadControlEvent::Axis2D(GamepadAxis2DEvent {
+                    index: 42,
+                    value: Vec2::new(0.2, -0.2),
                 }),
             })
         );
