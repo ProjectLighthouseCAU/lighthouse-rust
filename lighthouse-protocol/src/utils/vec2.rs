@@ -1,9 +1,9 @@
-use std::{fmt, ops::{Add, AddAssign, Neg, Sub, SubAssign}};
+use std::{fmt, ops::{Add, AddAssign, Mul, Neg, Sub, SubAssign}};
 
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 
-use super::{Unity, Zero};
+use super::{Sqrt, Unity, Zero};
 
 /// A 2D vector.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -56,6 +56,13 @@ impl<T> Vec2<T> where T: Zero + Unity {
     /// Randomly one of the four cardinal rotations with the thread-local rng.
     pub fn random_cardinal() -> Self {
         Self::random_cardinal_with(&mut thread_rng())
+    }
+}
+
+impl<T> Vec2<T> where T: Add<Output = T> + Mul<Output = T> + Sqrt + Copy {
+    /// The vector's length.
+    pub fn length(&self) -> T {
+        (self.x * self.x + self.y * self.y).sqrt()
     }
 }
 
