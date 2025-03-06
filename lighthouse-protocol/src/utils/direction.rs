@@ -1,9 +1,9 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::Neg};
 
 use rand::{prelude::Distribution, distributions::Standard};
 use serde::{Deserialize, Serialize};
 
-use super::{Delta, Unity, Zero};
+use super::{Vec2, Unity, Zero};
 
 /// One of the four cardinal directions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -14,31 +14,54 @@ pub enum Direction {
     Right,
 }
 
-impl<T> TryFrom<Delta<T>> for Direction where T: Zero + Unity + PartialEq + Debug {
+impl Direction {
+    pub fn approximate_from<T>(vec2: Vec2<T>) -> Option<Self> where T: Zero + Unity + PartialEq + Neg<Output = T> + PartialOrd + Copy {
+        if vec2 == Vec2::ZERO {
+            return None;
+        }
+
+        // See https://www.desmos.com/calculator/472pdoxzqa for visualization
+        // Note that the y-axis is flipped here, per computer graphics conventions,
+        // hence the sign flip (-y instead of y).
+        let Vec2 { x, y } = vec2;
+        let left_or_up = x < -y;
+        let right_or_up = -x < -y;
+        Some(
+            match (left_or_up, right_or_up) {
+                (true, true) => Direction::Up,
+                (true, false) => Direction::Left,
+                (false, true) => Direction::Right,
+                (false, false) => Direction::Down, 
+            }
+        )
+    }
+}
+
+impl<T> TryFrom<Vec2<T>> for Direction where T: Zero + Unity + PartialEq + Debug {
     type Error = String;
 
-    fn try_from(delta: Delta<T>) -> Result<Self, Self::Error> {
-        if delta == Delta::UP {
+    fn try_from(vec2: Vec2<T>) -> Result<Self, Self::Error> {
+        if vec2 == Vec2::UP {
             Ok(Direction::Up)
-        } else if delta == Delta::DOWN {
+        } else if vec2 == Vec2::DOWN {
             Ok(Direction::Down)
-        } else if delta == Delta::LEFT {
+        } else if vec2 == Vec2::LEFT {
             Ok(Direction::Left)
-        } else if delta == Delta::RIGHT {
+        } else if vec2 == Vec2::RIGHT {
             Ok(Direction::Right)
         } else {
-            Err(format!("Not a direction: {:?}", delta))
+            Err(format!("Not a direction: {:?}", vec2))
         }
     }
 }
 
-impl<T> From<Direction> for Delta<T> where T: Zero + Unity {
+impl<T> From<Direction> for Vec2<T> where T: Zero + Unity {
     fn from(direction: Direction) -> Self {
         match direction {
-            Direction::Up => Delta::UP,
-            Direction::Down => Delta::DOWN,
-            Direction::Left => Delta::LEFT,
-            Direction::Right => Delta::RIGHT,
+            Direction::Up => Vec2::UP,
+            Direction::Down => Vec2::DOWN,
+            Direction::Left => Vec2::LEFT,
+            Direction::Right => Vec2::RIGHT,
         }
     }
 }

@@ -20,20 +20,7 @@ impl GamepadAxis2DEvent {
             return None;
         }
 
-        // See https://www.desmos.com/calculator/472pdoxzqa for visualization
-        // Note that the y-axis is flipped here, per computer graphics conventions,
-        // hence the sign flip (-y instead of y).
-        let Vec2 { x, y } = self.value;
-        let left_or_up = x < -y;
-        let right_or_up = -x < -y;
-        Some(
-            match (left_or_up, right_or_up) {
-                (true, true) => Direction::Up,
-                (true, false) => Direction::Left,
-                (false, true) => Direction::Right,
-                (false, false) => Direction::Down, 
-            }
-        )
+        Direction::approximate_from(self.value)
     }
 }
 
