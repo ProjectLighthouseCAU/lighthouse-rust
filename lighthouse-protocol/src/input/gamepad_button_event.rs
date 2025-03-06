@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{Delta, Unity, Zero};
+use crate::Direction;
 
 /// A button event on a gamepad.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -17,12 +17,12 @@ pub struct GamepadButtonEvent {
 impl GamepadButtonEvent {
     /// The direction if one of the D-pad buttons was pressed.
     /// See https://www.w3.org/TR/gamepad/#dfn-standard-gamepad
-    pub fn d_pad_direction<T>(&self) -> Option<Delta<T>> where T: Zero + Unity {
+    pub fn d_pad_direction(&self) -> Option<Direction> {
         match self.index {
-            12 => Some(Delta::UP),
-            13 => Some(Delta::DOWN),
-            14 => Some(Delta::LEFT),
-            15 => Some(Delta::RIGHT),
+            12 => Some(Direction::Up),
+            13 => Some(Direction::Down),
+            14 => Some(Direction::Left),
+            15 => Some(Direction::Right),
             _ => None,
         }
     }
