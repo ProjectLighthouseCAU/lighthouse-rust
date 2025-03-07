@@ -12,6 +12,8 @@ pub struct MouseEvent {
     pub source: EventSource,
     /// Whether the button was pressed.
     pub down: bool,
+    /// Whether the mouse pointer was locked (e.g. to the frontend's canvas)
+    pub pointer_locked: bool,
     /// The mouse button.
     pub button: MouseButton,
     /// The mouse position on the lighthouse grid.
