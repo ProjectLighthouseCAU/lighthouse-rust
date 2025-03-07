@@ -12,6 +12,8 @@ pub struct MouseEvent {
     pub source: EventSource,
     /// The mouse button.
     pub button: MouseButton,
-    /// The mouse position.
+    /// The mouse position on the lighthouse grid.
     pub pos: Pos<f64>,
+    /// The mouse movement on the lighthouse grid.
+    pub movement: Pos<f64>,
 }
