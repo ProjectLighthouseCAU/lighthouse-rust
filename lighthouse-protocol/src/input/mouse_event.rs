@@ -10,6 +10,8 @@ use super::{EventSource, MouseButton};
 pub struct MouseEvent {
     /// The client identifier.
     pub source: EventSource,
+    /// Whether the button was pressed.
+    pub down: bool,
     /// The mouse button.
     pub button: MouseButton,
     /// The mouse position on the lighthouse grid.
