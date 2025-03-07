@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::Pos;
+use crate::{Delta, Pos};
 
 use super::{EventSource, MouseButton};
 
@@ -19,5 +19,5 @@ pub struct MouseEvent {
     /// The mouse position on the lighthouse grid.
     pub pos: Pos<f64>,
     /// The mouse movement on the lighthouse grid.
-    pub movement: Pos<f64>,
+    pub movement: Delta<f64>,
 }
