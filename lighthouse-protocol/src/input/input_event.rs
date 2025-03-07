@@ -53,7 +53,7 @@ impl InputEvent {
 mod tests {
     use serde_json::json;
 
-    use crate::{EventSource, GamepadAxis2DEvent, GamepadAxisEvent, GamepadButtonEvent, GamepadControlEvent, GamepadEvent, InputEvent, KeyEvent, KeyModifiers, MouseButton, MouseEvent, Pos, Vec2};
+    use crate::{Delta, EventSource, GamepadAxis2DEvent, GamepadAxisEvent, GamepadButtonEvent, GamepadControlEvent, GamepadEvent, InputEvent, KeyEvent, KeyModifiers, MouseButton, MouseEvent, Pos, Vec2};
 
     #[test]
     fn key_event() {
@@ -88,15 +88,24 @@ mod tests {
                 "type": "mouse",
                 "source": 1,
                 "button": "left",
+                "down": true,
+                "pointerLocked": false,
                 "pos": {
                     "x": 2,
                     "y": 4,
+                },
+                "movement": {
+                    "x": 6,
+                    "y": -3,
                 },
             })).unwrap(),
             InputEvent::Mouse(MouseEvent {
                 source: EventSource::Int(1),
                 button: MouseButton::Left,
+                down: true,
+                pointer_locked: false,
                 pos: Pos::new(2.0, 4.0),
+                movement: Delta::new(6.0, -3.0),
             })
         );
     }
