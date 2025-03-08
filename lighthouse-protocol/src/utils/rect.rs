@@ -1,10 +1,10 @@
-use std::{fmt::Debug, ops::{Add, Mul, Range, Sub}};
+use std::{fmt::Debug, ops::{Add, Div, Mul, Range, Sub}};
 
 use rand::{Rng, seq::IteratorRandom, thread_rng};
 
 use crate::{Vec2, LIGHTHOUSE_COLS};
 
-use super::{RemEuclid, Zero};
+use super::{RemEuclid, Unity, Zero};
 
 /// A rectangle on the integer grid.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -29,6 +29,62 @@ impl<T> Rect<T> where T: Copy {
     /// The rectangle's height.
     pub const fn height(self) -> T {
         self.size.y
+    }
+
+    /// Fetches the top-left corner of the rectangle, i.e. the origin.
+    pub const fn top_left(self) -> Vec2<T> {
+        self.origin
+    }
+}
+
+impl<T> Rect<T> where T: Add<Output = T> + Copy {
+    /// Fetches the bottom-right corner of the rectangle.
+    pub fn bottom_right(self) -> Vec2<T> {
+        self.origin + self.size
+    }
+}
+
+impl<T> Rect<T> where T: Add<Output = T> + Copy + Zero {
+    /// Fetches the bottom-left corner of the rectangle.
+    pub fn bottom_left(self) -> Vec2<T> {
+        self.origin + Vec2::new(T::ZERO, self.size.y)
+    }
+
+    /// Fetches the top-right corner of the rectangle.
+    pub fn top_right(self) -> Vec2<T> {
+        self.origin + Vec2::new(self.size.x, T::ZERO)
+    }
+}
+
+impl<T> Rect<T> where T: Add<Output = T> + Div<Output = T> + Copy + Zero + Unity {
+    /// The generic constant 2.
+    fn two() -> T {
+        T::ONE + T::ONE
+    }
+
+    /// Fetches the top-center position of the rectangle.
+    pub fn top_center(self) -> Vec2<T> {
+        self.origin + Vec2::new(self.size.x / Self::two(), T::ZERO)
+    }
+
+    /// Fetches the left-center position of the rectangle.
+    pub fn center_left(self) -> Vec2<T> {
+        self.origin + Vec2::new(T::ZERO, self.size.y / Self::two())
+    }
+
+    /// Fetches the right-center position of the rectangle.
+    pub fn center_right(self) -> Vec2<T> {
+        self.origin + Vec2::new(self.size.x, self.size.y / Self::two())
+    }
+
+    /// Fetches the bottom-center position of the rectangle.
+    pub fn bottom_center(self) -> Vec2<T> {
+        self.origin + Vec2::new(self.size.x / Self::two(), self.size.y)
+    }
+
+    /// Fetches the center position of the rectangle.
+    pub fn center(self) -> Vec2<T> {
+        self.origin + self.size.map(|c| c / Self::two())
     }
 }
 
@@ -96,5 +152,28 @@ impl<T> Rect<T> where T: Add<Output = T> + Sub<Output = T> + TryInto<usize> + Or
         debug_assert!(self.contains(pos));
         let relative = pos - self.origin;
         relative.y.try_into().unwrap() * LIGHTHOUSE_COLS + relative.x.try_into().unwrap()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::Vec2;
+
+    use super::Rect;
+
+    #[test]
+    fn unit_points() {
+        let rect = Rect::new(Vec2::new(-1, -1), Vec2::new(2, 2));
+        assert_eq!(rect.top_left(), Vec2::new(-1, -1));
+        assert_eq!(rect.top_center(), Vec2::new(0, -1));
+        assert_eq!(rect.top_right(), Vec2::new(1, -1));
+
+        assert_eq!(rect.center_left(), Vec2::new(-1, 0));
+        assert_eq!(rect.center(), Vec2::new(0, 0));
+        assert_eq!(rect.center_right(), Vec2::new(1, 0));
+
+        assert_eq!(rect.bottom_left(), Vec2::new(-1, 1));
+        assert_eq!(rect.bottom_center(), Vec2::new(0, 1));
+        assert_eq!(rect.bottom_right(), Vec2::new(1, 1));
     }
 }
