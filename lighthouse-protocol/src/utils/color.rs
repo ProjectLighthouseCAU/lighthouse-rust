@@ -14,6 +14,7 @@ pub struct Color {
 
 impl Color {
     pub const BLACK: Self = Self { red: 0, green: 0, blue: 0 };
+    pub const GRAY: Self = Self { red: 128, green: 128, blue: 128 };
     pub const WHITE: Self = Self { red: 255, green: 255, blue: 255 };
     pub const RED: Self = Self { red: 255, green: 0, blue: 0 };
     pub const GREEN: Self = Self { red: 0, green: 255, blue: 0 };
