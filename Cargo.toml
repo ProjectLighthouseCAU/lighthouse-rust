@@ -7,9 +7,9 @@ default-members = ["lighthouse-client"]
 resolver = "2"
 
 [workspace.package]
-version = "5.1.1"
+version = "5.1.2"
 edition = "2021"
 license = "MIT"
 
 [workspace.dependencies]
-lighthouse-protocol = { version = "^5.1.1", path = "lighthouse-protocol" }
+lighthouse-protocol = { version = "^5.1.2", path = "lighthouse-protocol" }
