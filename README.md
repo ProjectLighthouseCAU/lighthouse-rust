@@ -26,6 +26,8 @@ cargo run --example disco
 
 For more involved examples, check out
 
+- https://github.com/ProjectLighthouseCAU/lighthouse-rust-template
 - https://github.com/ProjectLighthouseCAU/limo
 - https://github.com/fwcd/lisnake
 - https://github.com/fwcd/litris
+- https://github.com/fwcd/lidoom
