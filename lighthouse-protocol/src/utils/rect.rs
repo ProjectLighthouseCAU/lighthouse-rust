@@ -144,6 +144,16 @@ impl<T> Rect<T> where T: Add<Output = T> + Ord + Copy {
         pos.x >= self.origin.x && pos.x < self.origin.x + self.width()
         && pos.y >= self.origin.y && pos.y < self.origin.y + self.height()
     }
+
+    /// Checks whether the rectangle intersects the given rectangle.
+    pub fn intersects(self, other: Rect<T>) -> bool {
+        let s1 = self.top_left();
+        let e1 = self.bottom_right();
+        let s2 = other.top_left();
+        let e2 = other.bottom_right();
+        s2.x < e1.x && s1.x < e2.x &&
+        s2.y < e1.y && s1.y < e2.y
+    }
 }
 
 impl<T> Rect<T> where T: Add<Output = T> + Sub<Output = T> + TryInto<usize> + Ord + Copy, T::Error: Debug {
@@ -157,6 +167,8 @@ impl<T> Rect<T> where T: Add<Output = T> + Sub<Output = T> + TryInto<usize> + Or
 
 #[cfg(test)]
 mod tests {
+    use std::ops::Sub;
+
     use crate::Vec2;
 
     use super::Rect;
@@ -175,5 +187,19 @@ mod tests {
         assert_eq!(rect.bottom_left(), Vec2::new(-1, 1));
         assert_eq!(rect.bottom_center(), Vec2::new(0, 1));
         assert_eq!(rect.bottom_right(), Vec2::new(1, 1));
+    }
+
+    #[test]
+    fn intersections() {
+        assert!(rect(0, 0, 2, 2).intersects(rect(1, 1, 3, 3)));
+        assert!(rect(0, 0, 2, 2).intersects(rect(1, -1, 1, 3)));
+        assert!(!rect(0, -2, 1, 1).intersects(rect(1, -1, 1, 3)));
+        assert!(!rect(0, 0, 1, 1).intersects(rect(1, 0, 2, 1)));
+        assert!(rect(0, 0, 2, 1).intersects(rect(1, 0, 2, 1)));
+        assert!(!rect(0, 0, 2, 0).intersects(rect(1, 0, 2, 1)));
+    }
+
+    fn rect<T>(sx: T, sy: T, ex: T, ey: T) -> Rect<T> where T: Copy + Sub<Output = T> {
+        Rect::new(Vec2::new(sx, sy), Vec2::new(ex - sx, ey - sy))
     }
 }
