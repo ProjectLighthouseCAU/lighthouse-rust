@@ -1,15 +1,6 @@
 use clap::Parser;
-use lighthouse_client::{protocol::Authentication, root, Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL};
+use lighthouse_client::{protocol::Authentication, root, Lighthouse, Result, LIGHTHOUSE_URL};
 use tracing::info;
-
-async fn run(lh: Lighthouse<TokioWebSocket>) -> Result<()> {
-    info!("Connected to the Lighthouse server");
-
-    let tree = lh.list(root![]).await?.payload;
-    info!("Got {}", tree);
-
-    Ok(())
-}
 
 #[derive(Parser)]
 struct Args {
@@ -22,6 +13,9 @@ struct Args {
     /// The server URL.
     #[arg(long, env = "LIGHTHOUSE_URL", default_value = LIGHTHOUSE_URL)]
     url: String,
+    /// Whether to list only the first layer.
+    #[arg(short, long)]
+    nonrecursive: bool,
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -33,5 +27,13 @@ async fn main() -> Result<()> {
     let auth = Authentication::new(&args.username, &args.token);
     let lh = Lighthouse::connect_with_tokio_to(&args.url, auth).await?;
 
-    run(lh).await
+    let tree = if args.nonrecursive {
+        lh.list_dir(root![]).await
+    } else {
+        lh.list_tree(root![]).await
+    }?.payload;
+
+    info!("Got {}", tree);
+
+    Ok(())
 }
