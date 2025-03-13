@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt::Debug, sync::{atomic::{AtomicI32, Ordering}
 
 use async_tungstenite::tungstenite::{Message, self};
 use futures::{prelude::*, channel::mpsc::{Sender, self}, stream::{SplitSink, SplitStream}, lock::Mutex};
-use lighthouse_protocol::{Authentication, ClientMessage, DirectoryTree, Frame, InputEvent, LaserMetrics, Model, ServerMessage, Value, Verb};
+use lighthouse_protocol::{Authentication, ClientMessage, DirectoryTree, Frame, InputEvent, LaserMetrics, Meta, Model, ServerMessage, Value, Verb};
 use serde::{Deserialize, Serialize};
 use stream_guard::GuardStreamExt;
 use tracing::{warn, error, debug, info};
@@ -267,7 +267,7 @@ impl<S> Lighthouse<S>
             request_id,
             authentication: self.authentication.clone(),
             path,
-            meta: HashMap::new(),
+            meta: Meta::default(),
             verb: verb.clone(),
             payload
         }).await?;

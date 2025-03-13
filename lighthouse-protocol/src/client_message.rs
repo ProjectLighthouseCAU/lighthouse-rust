@@ -1,8 +1,6 @@
-use std::collections::HashMap;
-
 use serde::{Serialize, Deserialize};
 
-use crate::{Authentication, Value, ValueError, Verb};
+use crate::{Authentication, Meta, Value, ValueError, Verb};
 
 /// A message originating from the lighthouse client.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
@@ -14,7 +12,7 @@ pub struct ClientMessage<P> {
     #[serde(rename = "PATH")]
     pub path: Vec<String>,
     #[serde(rename = "META")]
-    pub meta: HashMap<String, String>,
+    pub meta: Meta,
     #[serde(rename = "AUTH")]
     pub authentication: Authentication,
     #[serde(rename = "PAYL")]
