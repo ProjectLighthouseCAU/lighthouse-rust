@@ -7,7 +7,7 @@ use super::EventSource;
 pub struct OrientationEvent {
     /// The client identifier.
     pub source: EventSource,
-    // /// Whether the device provides absolute orientation data.
+    /// Whether the device provides absolute orientation data.
     pub absolute: Option<bool>,
     /// The motion of the device around the z-axis, in degrees from 0 (inclusive) to 360 (exclusive).
     pub alpha: Option<f64>,
