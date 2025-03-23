@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::EventSource;
 
-/// A gamepad/controller event.
+/// An unknown event.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct UnknownEvent {
