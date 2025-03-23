@@ -2,7 +2,8 @@ use clap::Parser;
 use futures::StreamExt;
 use lighthouse_client::{protocol::Authentication, Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL};
 use lighthouse_protocol::InputEvent;
-use tracing::info;
+use midi_msg::MidiMsg;
+use tracing::{info, warn};
 
 async fn run(lh: Lighthouse<TokioWebSocket>) -> Result<()> {
     info!("Connected to the Lighthouse server");
@@ -12,7 +13,10 @@ async fn run(lh: Lighthouse<TokioWebSocket>) -> Result<()> {
     while let Some(msg) = stream.next().await {
         let event = msg?.payload;
         if let InputEvent::MIDI(midi) = event {
-            info!("Got MIDI event: {:?}", midi);
+            match MidiMsg::from_midi(&midi.data) {
+                Ok((msg, _)) => info!("Got MIDI message: {:?}", msg),
+                Err(e) => warn!("Could not parse MIDI message: {:?}", e),
+            };
         }
     }
 
