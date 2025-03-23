@@ -30,5 +30,5 @@ pub struct MIDIEvent {
     /// - https://www.w3.org/TR/webmidi/#terminology
     /// - http://www.opensound.com/pguide/midi/midi5.html
     /// - https://www.songstuff.com/recording/article/midi-message-format/
-    data: Vec<u8>,
+    pub data: Vec<u8>,
 }
