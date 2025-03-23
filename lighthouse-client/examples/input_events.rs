@@ -1,18 +1,16 @@
 use clap::Parser;
 use futures::StreamExt;
 use lighthouse_client::{protocol::Authentication, Lighthouse, Result, TokioWebSocket, LIGHTHOUSE_URL};
-use lighthouse_protocol::Model;
 use tracing::info;
 
 async fn run(lh: Lighthouse<TokioWebSocket>) -> Result<()> {
     info!("Connected to the Lighthouse server");
 
     // Stream input events
-    let mut stream = lh.stream_model().await?;
+    let mut stream = lh.stream_input().await?;
     while let Some(msg) = stream.next().await {
-        if let Model::InputEvent(event) = msg?.payload {
-            info!("Got input event: {:?}", event)
-        }
+        let event = msg?.payload;
+        info!("Got input event: {:?}", event);
     }
 
     Ok(())
