@@ -34,7 +34,10 @@ impl InputEvent {
 
     /// Parses the input event as an arbitrary direction.
     pub fn direction(&self) -> Option<Direction> {
-        self.left_direction().or_else(|| self.right_direction())
+        match self {
+            InputEvent::Orientation(orientation) => orientation.direction(),
+            _ => self.left_direction().or_else(|| self.right_direction()),
+        }
     }
 
     /// The direction if the input event represents a WASD key, D-pad or left stick.
