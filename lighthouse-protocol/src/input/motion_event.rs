@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::Vec3;
+use crate::{Rot3, Vec3};
 
 use super::EventSource;
 
@@ -14,9 +14,8 @@ pub struct MotionEvent {
     pub acceleration: Option<Vec3<Option<f64>>>,
     /// The acceleration in 3D space (including gravity) in m/s^2.
     pub acceleration_including_gravity: Option<Vec3<Option<f64>>>,
-
-    // TODO: rotation rate
-
+    /// The rotation rate in deg/s on the three rotation axes.
+    pub rotation_rate: Option<Rot3<Option<f64>>>,
     /// The granularity of these events in ms.
     pub interval: f64,
 }
