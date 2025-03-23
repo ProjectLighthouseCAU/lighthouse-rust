@@ -27,7 +27,7 @@ impl OrientationEvent {
         let Some(gamma) = self.gamma else { return None };
 
         let deadzone_radius: f64 = 10.0;
-        if beta.max(gamma) < deadzone_radius {
+        if beta.abs().max(gamma.abs()) < deadzone_radius {
             return None;
         }
 
