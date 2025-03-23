@@ -4,6 +4,7 @@ use super::EventSource;
 
 /// A device orientation event.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct OrientationEvent {
     /// The client identifier.
     pub source: EventSource,
