@@ -11,6 +11,7 @@ mod legacy_input_event;
 mod midi_event;
 mod mouse_button;
 mod mouse_event;
+mod orientation_event;
 mod unknown_event;
 
 pub use event_source::*;
@@ -26,4 +27,5 @@ pub use legacy_input_event::*;
 pub use midi_event::*;
 pub use mouse_button::*;
 pub use mouse_event::*;
+pub use orientation_event::*;
 pub use unknown_event::*;
