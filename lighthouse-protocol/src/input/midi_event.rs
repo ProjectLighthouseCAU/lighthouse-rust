@@ -1,8 +1,12 @@
 use serde::{Deserialize, Serialize};
 
+use super::EventSource;
+
 /// A MIDI message event.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct MIDIEvent {
+    /// The client identifier. Also unique per MIDI input device.
+    pub source: EventSource,
     /// The binary MIDI message.
     /// 
     /// The first byte is a status byte (first/most significant bit = 1), the
