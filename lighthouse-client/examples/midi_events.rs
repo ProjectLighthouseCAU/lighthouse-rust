@@ -12,7 +12,7 @@ async fn run(lh: Lighthouse<TokioWebSocket>) -> Result<()> {
     let mut stream = lh.stream_input().await?;
     while let Some(msg) = stream.next().await {
         let event = msg?.payload;
-        if let InputEvent::MIDI(midi) = event {
+        if let InputEvent::Midi(midi) = event {
             match MidiMsg::from_midi(&midi.data) {
                 Ok((msg, _)) => info!("Got MIDI message: {:?}", msg),
                 Err(e) => warn!("Could not parse MIDI message: {:?}", e),

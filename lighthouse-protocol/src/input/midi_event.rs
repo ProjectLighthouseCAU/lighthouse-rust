@@ -4,7 +4,7 @@ use super::EventSource;
 
 /// A MIDI message event.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
-pub struct MIDIEvent {
+pub struct MidiEvent {
     /// The client identifier. Also unique per MIDI input device.
     pub source: EventSource,
     /// The binary MIDI message.
