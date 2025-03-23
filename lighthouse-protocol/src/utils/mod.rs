@@ -6,6 +6,7 @@ mod rotation;
 mod sqrt;
 mod unity;
 mod vec2;
+mod vec3;
 mod zero;
 
 pub use color::*;
@@ -16,4 +17,5 @@ pub use rotation::*;
 pub use sqrt::*;
 pub use unity::*;
 pub use vec2::*;
+pub use vec3::*;
 pub use zero::*;
