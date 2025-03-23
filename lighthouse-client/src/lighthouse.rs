@@ -244,7 +244,7 @@ impl<S> Lighthouse<S>
         let path: Vec<String> = path.into_iter().map(|s| s.as_ref().to_string()).collect();
         self.send_request(request_id, &Verb::Stream, &path, payload).await?;
         let stream = self.receive_streaming(request_id).await?;
-        Ok(stream.guard({
+        Ok(stream.map(|m| Ok(m?.check()?.decode_payload()?)).guard({
             // Stop the stream on drop
             let this = (*self).clone();
             move || {
