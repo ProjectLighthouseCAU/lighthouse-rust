@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::EventSource;
 
 /// A MIDI message event.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct MidiEvent {
     /// The client identifier. Also unique per MIDI input device.
     pub source: EventSource,
@@ -30,5 +30,6 @@ pub struct MidiEvent {
     /// - https://www.w3.org/TR/webmidi/#terminology
     /// - http://www.opensound.com/pguide/midi/midi5.html
     /// - https://www.songstuff.com/recording/article/midi-message-format/
+    #[serde(with = "serde_bytes")]
     pub data: Vec<u8>,
 }
