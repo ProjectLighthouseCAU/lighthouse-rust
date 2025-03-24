@@ -146,7 +146,10 @@ impl<S> Lighthouse<S>
     /// and parse `LegacyInputEvent`s from there.
     pub async fn stream_input(&self) -> Result<impl Stream<Item = Result<ServerMessage<InputEvent>>>> {
         let username = self.authentication.username.clone();
-        self.stream(&["user".into(), username, "input".into()], ()).await
+        Ok(
+            self.stream(&["user".into(), username, "input".into()], ()).await?
+                .skip(1) // Skip the persisted input (TODO: Should we handle this at the server level via some form of passthrough resources?)
+        )
     }
 
     /// Fetches lamp server metrics.
